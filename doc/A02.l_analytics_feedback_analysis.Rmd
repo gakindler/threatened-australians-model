@@ -1,0 +1,457 @@
+---
+title: Brief exploration of the analytics and feedback data<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: hide
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r Libraries, message=FALSE}
+library(tidyverse)
+library(sf)
+library(magrittr)
+library(jsonlite)
+library(units)
+library(readxl)
+library(stringr)
+library(plotly)
+library(googleAnalyticsR)
+library(forcats)
+library(reactable)
+library(readODS)
+library(naniar)
+library(viridis)
+library(ggridges)
+library(networkD3)
+```
+
+# Data
+
+We've got two sources of *data* that were produced by **Threatened Australians**, they are:
+
+1.  Analytics data - this includes information on page views, clicks, users. This is information is collected via Google Analytics. It structures the data into different *reports* with a couple of dimensions for each. The ones I'm currently interested in are:
+
+    -   Engagement report - pages and screens viewed by users. This includes the number of times a specific page was viewed, how many users, how many events (e.g. clicks, scrolls).
+
+    -   Acquisition report - how we acquired traffic/users
+
+    There are other reports such as demographics (kinda unreliable), and tech (what OS and devices people used to access).
+
+2.  Feedback data - this is a single data frame with the answers to the feedback survey
+
+# Import
+
+```{r import}
+engag_title_clean <- fromJSON(
+    "output/clean_data/analytics_feedback/engag_title_clean.json"
+  )
+acquis_source_clean <- fromJSON(
+    "output/clean_data/analytics_feedback/acquis_source_clean.json"
+  )
+acquis_time_clean <- fromJSON(
+    "output/clean_data/analytics_feedback/acquis_time_clean.json"
+  )
+acquis_users_clean <- fromJSON(
+    "output/clean_data/analytics_feedback/acquis_users_clean.json"
+  )
+feedback_clean <- fromJSON(
+    "output/clean_data/analytics_feedback/feedback_clean.json"
+  )
+demo <- fromJSON(
+    "output/clean_data/demo_clean.json"
+)
+```
+
+# Analysis
+
+Graphs are interactive - hover over, drag, drop. Double click to go back to the original position
+
+Tables are sort-able - click on a column to cycle through ascending/descending
+
+## Analytics
+
+### Engagement
+
+**Which are the top ten most viewed pages on our website?**
+
+```{r warning=FALSE}
+top_ten_pgs <- engag_title_clean %>% 
+  arrange(desc(views)) %>% 
+  slice(1:10)
+ggplotly(
+  ggplot(
+  top_ten_pgs
+) + aes(
+  x = fct_reorder(top_ten_pgs$page_title, top_ten_pgs$views),
+  # x = page_title,
+  y = views,
+  text = paste(
+    "Page:", page_title, "\n", 
+    "Views:", views
+  )
+) + geom_bar(
+  stat = 'identity'
+  ) + coord_flip() +
+ labs(
+    x = NULL,
+    y = "Number of views"
+  ) + 
+    theme_classic()
+,
+tooltip = "text"
+)
+```
+
+I'm providing the full table here so you can explore it as I don't see an interesting story in it other than the first three columns and perhaps the first 30 rows. Just to minimise the data flying around I've filtered it to this but in total there are `r dim(engag_title_clean)[1]` rows.
+
+```{r}
+engag_title_clean %>% 
+  mutate(
+    across(
+      c(
+        views_per_user,
+        average_engagement_time
+      ),
+      signif,
+      digits = 3
+    )
+  ) %>% 
+  slice(1:30) %>% 
+  reactable()
+```
+
+#### Species/electorate pages
+
+The Species/electorate pages are the page users get shown once we connect them with their electorate. So once we have their postcode, we show them their electorate with the "More species" buttons that allow them to cycle through the species within their electorate.
+
+```{r, message = FALSE}
+species_title <- engag_title_clean %>% 
+  filter(
+    !str_detect(
+      page_title,
+      "Help|Survey|About|Resources|Browse|Choose|Home|Australians"
+    )
+  ) %>% 
+  filter(
+    !grepl(
+      "^Large-eared Pied Bat$",
+      page_title
+    )
+  ) %>% 
+  mutate(
+    vernacular_name = word(
+      page_title, 1, sep = fixed(" in ")
+    )
+  ) %>%
+  mutate(
+    electorate = word(
+      page_title, 2, sep = fixed(" in ")
+    )
+  ) %>%
+  full_join(demo) %>% 
+  relocate(
+    page_title, electorate, state_territory, state_territory_abbrev, demographic_class, vernacular_name
+  )
+```
+
+I'm grouping by species, across electorates. For example, I want to know how many views (or other metrics) the Koala got across all electorates.
+
+As expected, the most viewed species are those which were most distributed across all electorates i.e. came up most in user's cycling through species. The Australasian Bittern takes the top spot. I won't bother showing the data here as nothing special.
+
+However, when we look at `average_engagement_time`, things are perhaps slightly more interesting, though not really... "a short-tongued bee" trumps an Emerald Dove. Big grain of salt.
+
+```{r}
+species_title %>% 
+  group_by(vernacular_name) %>% 
+  summarise(average_engagement_time = mean(average_engagement_time)) %>% 
+  arrange(desc(average_engagement_time)) %>%
+  mutate(
+    across(
+      average_engagement_time,
+      signif,
+      digits = 3
+    )
+  ) %>% 
+  reactable(
+    columns = list(
+      vernacular_name = colDef(name = "Vernacular name"),
+      average_engagement_time = colDef(name = "Average engagement time", align = "center")
+    )
+  )
+```
+
+Now I'm grouping by electorate, across species. For example, I want to know which electorates produced the most species "views".
+
+```{r}
+species_title %>% 
+  group_by(electorate) %>% 
+  summarise(views = sum(views)) %>% 
+  arrange(desc(views)) %>% 
+  reactable(
+    columns = list(
+      electorate = colDef(name = "Electorate"),
+      views = colDef(name = "Views", align = "center")
+    )
+  )
+```
+
+#### How to Help pages
+
+```{r message = FALSE}
+help_title <- engag_title_clean %>% 
+  filter(
+    str_detect(
+      page_title,
+      "Help"
+    )
+  ) %>% 
+  filter(
+    !str_detect(
+      page_title,
+      "wills"
+    )
+  ) %>%
+  mutate(
+    electorate = word(
+      page_title, 2, sep = fixed(" in ")
+    )
+  ) %>%
+  full_join(., demo) %>% 
+  relocate(
+    page_title, electorate, state_territory, state_territory_abbrev, demographic_class
+  )
+```
+
+The How to Help pages are the page users get to if they click the 'How to Help' button on the species/electorate page. It includes the four steps to make a difference that is specific to their electorate.
+
+Across the How to Help pages we received `r sum(help_title$views)` views and `r sum(help_title$users)` users. This means out of the total users we had visit the home page, `r round(sum(help_title$users)/engag_title_clean[engag_title_clean$page_title == "Home", 3]*100)`% made it to the How to Help page.
+
+These same pages produced the following state by state breakdown of users:
+
+```{r}
+help_title %>% 
+  group_by(state_territory_abbrev) %>% 
+  summarise(sum_users = sum(users)) %>% 
+  arrange(desc(sum_users)) %>% 
+  reactable(
+    columns = list(
+      state_territory_abbrev = colDef(name = "State or territory"),
+      sum_users = colDef(name = "Sum of users", align = "center")
+    )
+  )
+```
+
+The electorate with the most users visit its How to Help page was `r arrange(help_title, desc(users))[1,"electorate"]` with `r arrange(help_title, desc(users))[1,"users"]`.
+
+Across all electorates, grouped next to their fellow electorates within each state and territory, we see the following breakdown:
+
+NB: hover your mouse over columns for more info, you can zoom in and out, click and drag etc. If you get stuck double click and you'll be taken back to the original position.
+
+```{r}
+help_ordered <- help_title %>% 
+  # mutate(
+  #   state_territory_abbrev = factor(
+  #     state_territory_abbrev, levels = c(
+  #       "ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"
+  #       )
+  #     )
+  #   ) %>%
+  arrange(state_territory_abbrev, desc(users)) %>% 
+  mutate(electorate = factor(electorate, unique(electorate)))
+# help_ordered$state_territory_abbrev <- fct_reorder(
+#   help_ordered$state_territory_abbrev, 
+#   help_ordered$users
+# )
+ggplotly(
+ggplot(help_ordered
+  ) + aes(
+    x = electorate,
+    y = users,
+    fill = state_territory_abbrev,
+    text = paste(
+      "Electorate:", electorate, 
+      "\nState or territory:", state_territory_abbrev,
+      "\nUsers:", users)
+  ) + geom_bar(
+    stat = "identity",
+    position = position_dodge(
+      0.1
+    )
+  ) +
+  scale_fill_viridis(
+    discrete = TRUE,
+    name = "State or territory",
+    option = "H"
+    # guide = guide_legend(reverse = T)
+  ) + 
+  labs(
+    y = "Number of users"
+  ) + 
+  # coord_flip() +
+  theme_classic() +
+    theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank()
+    )
+,
+  tooltip = "text"
+)
+```
+
+### Acquisition
+
+**How did our traffic change over time?**
+
+```{r}
+acquis_time_long_clean <- acquis_time_clean %>% 
+  pivot_longer(
+    cols = direct:facebook, 
+    names_to = "source",
+    values_to = "users"
+  ) %>% 
+  mutate(
+    users = as.integer(users)
+  ) %>% 
+  mutate(
+    date = as.Date(date)
+  ) %>% 
+  mutate(
+    source = factor(
+      source,
+      levels = c("direct", "convo", "abc", "google", "facebook")
+    )
+  )
+ggplotly(
+  ggplot(
+  acquis_time_long_clean
+  ) + 
+  aes(
+    x = date,
+    y = users,
+    fill = source
+  ) + 
+  geom_area(
+  ) +
+  scale_fill_viridis(
+    option = "H",
+    discrete = TRUE
+  ) +
+  theme_minimal() +
+  guides(
+        fill = "none"
+  ) +
+  labs(
+    x = NULL,
+    y = "Number of users"
+  )
+  ,
+  dynamicTicks = TRUE
+) %>%
+  rangeslider() %>%
+  layout(
+    hovermode = "x unified"
+  )
+```
+
+#### Traffic producers
+
+**Where did our traffic come from?**
+
+```{r}
+acquis_source_clean %>% 
+  reactable(
+    columns = list(
+      session_source = colDef(name = "Session source"),
+      users = colDef(name = "Users", align = "center")
+    )
+  )
+```
+
+## Feedback
+
+**Q: What was your key takeaway from the Threatened Australians web app?**
+
+```{r}
+feedback_clean %>% 
+  select(key_takeaway) %>% 
+  reactable()
+```
+
+**Q: Are you going to take any actions as a result of using the web app?**
+
+```{r}
+feedback_clean %>% 
+  mutate(
+    actions_result = factor(actions_result,
+      levels = c(
+        "No", "Unsure", "Probably", "Yes"
+    )
+  )
+  ) %>% 
+  ggplot() +
+  aes(x = actions_result) +
+  geom_bar() +
+  theme_classic() +
+  labs(
+    x = NULL,
+    y = NULL
+  )
+```
+
+**Q: What would those actions be?**
+
+Don't make the same mistake I made which was searching what "Licking chu papi" means on the internet. That's 8 minutes of watching tiktok videos of an internet sensation I'll never get back.
+
+Glad I don't have kids and have to help them navigate the internet world of today. Have fun with that James!
+
+```{r}
+feedback_clean %>% 
+  select(actions_be) %>% 
+  reactable()
+```
+
+**Q: The information on this website was easy to understand:**
+
+```{r}
+feedback_clean %>% 
+  mutate(
+    easy_to_understand = factor(easy_to_understand,
+      levels = c(
+        "Strongly disagree", "Disagree", 
+        "Neither agree or disagree", "Agree", "Strongly agree"
+        )
+      )
+    ) %>% 
+  ggplot() +
+  aes(x = easy_to_understand) +
+  geom_bar() +
+  theme_classic() +
+  labs(
+    x = NULL,
+    y = NULL
+  )
+```
+
+**Q: Do you have any suggestions for ways that we might improve the project?**
+
+```{r}
+feedback_clean %>% 
+  select(improvments_suggestions) %>% 
+  reactable()
+```
+
+**Q: Is there anything else that you would like to share with us?**
+
+```{r}
+feedback_clean %>% 
+  select(anything_else) %>% 
+  reactable()
+```

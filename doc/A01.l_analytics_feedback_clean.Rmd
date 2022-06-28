@@ -1,0 +1,266 @@
+---
+title: Cleaning of the analytics and feedback data<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: show
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r Libraries, message=FALSE}
+library(tidyverse)
+library(sf)
+library(magrittr)
+library(jsonlite)
+library(units)
+library(readxl)
+library(stringr)
+library(plotly)
+library(googleAnalyticsR)
+library(forcats)
+library(reactable)
+library(readODS)
+library(naniar)
+library(viridis)
+library(ggridges)
+library(networkD3)
+```
+
+# Data
+
+We've got two sources of *data* that were produced by **Threatened Australians**, they are:
+
+1.  Analytics data - this includes information on page views, clicks, users. This is information is collected via Google Analytics. It structures the data into different *reports* with a couple of dimensions for each. The ones I'm currently interested in are:
+
+    -   Engagement report - pages and screens viewed by users. This includes the number of times a specific page was viewed, how many users, how many events (e.g. clicks, scrolls).
+
+    -   Acquisition report - how we acquired traffic/users
+
+    There are other reports such as demographics (kinda unreliable), and tech (what OS and devices people used to access).
+
+2.  Feedback data - this is a single data frame with the answers to the feedback survey
+
+# Import
+
+## From raw csv
+
+Export the csv of the appropriate report from the Google Analytics page.
+
+```{r import}
+# path_report <- read.csv(
+#   "data/TA_analytics/22-05-02_22-06-14_page_path_report.csv",
+#   skip = 10020
+# )
+engag_title <- read.csv(
+  "data/TA_analytics/22-05-02_22-06-14_engagement_title.csv",
+  skip = 7331
+)
+acquis_time <- read.csv(
+  "data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.csv",
+  skip = 8
+) %>% 
+  filter(
+    !row_number() >= 45)
+acquis_source <- read.csv(
+  "data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.csv",
+  skip = 58
+) %>% 
+  filter(
+    !row_number() >= 105
+  )
+acquis_users <- read.csv(
+  "data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.csv",
+  skip = 168
+)
+# elects <- fromJSON(
+#   "output/clean_data/MP_info_clean.json"
+# )
+demo <- fromJSON(
+    "output/clean_data/demo_clean.json"
+)
+feedback <- read_ods(
+  "data/TA_feedback_output/21-to-22-06-16_feedback.ods"
+)
+```
+
+## From the GA API
+
+The typical package for this (`googleAnalyticsR`) was failing to get my account info (`ga_account_info()`) so I scrapped doing it this way, for the time being.
+
+# Clean
+
+## Analytics
+
+Everything that is needed to clean the analytics data is represented pretty clearly in the code, so I won't elaborate.
+
+```{r functions}
+replacePeriodsWithScores <- function(x){
+  colnames(x) <- gsub(
+    "\\.",
+    "\\_",
+    colnames(x)
+  ); x
+}
+```
+
+### Engagement
+
+I chose to use the by title engagement report as opposed to the by path as it was simply cleaner and slightly more informative. Even if the page titles use the vernacular name of species.
+
+```{r}
+engag_title_clean <- replacePeriodsWithScores(engag_title)
+names(engag_title_clean) <- tolower(names(engag_title_clean))
+engag_title_clean <- engag_title_clean %>% 
+  rename(
+    page_title = page_title_and_screen_class,
+  ) %>% 
+  select(
+    page_title, views, users, views_per_user, average_engagement_time,
+    unique_user_scrolls, event_count
+  ) %>%
+  mutate(
+    page_title = str_remove_all(
+        .$page_title,
+        coll(" - Threatened Australians")
+    )
+  ) %>% 
+  mutate(
+    page_title = str_replace(
+      .$page_title,
+      "Threatened Australians - find threatened species near you",
+      "Home"
+    )
+  ) %>% 
+  filter(
+    !str_detect(
+      page_title,
+      "絶滅の危機に瀕|https://www.threatened.o|wills|ausztrálok"
+    )
+  ) %T>% 
+  write_json(
+    "output/clean_data/analytics_feedback/engag_title_clean.json"
+  )
+```
+
+### Acquisition
+
+```{r}
+acquis_source_clean <- replacePeriodsWithScores(acquis_source)
+names(acquis_source_clean) <- tolower(names(acquis_source_clean))
+acquis_source_clean <- acquis_source_clean %>% 
+  mutate(
+    users = as.integer(users)
+  ) %T>% 
+  write_json(
+    "output/clean_data/analytics_feedback/acquis_source_clean.json"
+  )
+
+names(acquis_time) <- tolower(names(acquis_time))
+names(acquis_time)[names(acquis_time) == 'x.direct.'] <- 'direct'
+date_range <- seq.Date(
+  as.Date("2022/05/02", tz = AEST), 
+  as.Date("2022/06/14", tz = AEST), 
+  "day")
+acquis_time$date <- date_range
+acquis_time_clean <- acquis_time %>% 
+  select(!day) %>% 
+  relocate(
+    date,
+    .before = direct
+  ) %>% 
+  rename(
+    abc = abc.net.au,
+    convo = theconversation.com,
+    facebook = m.facebook.com
+  ) %T>%
+  write_json(
+    "output/clean_data/analytics_feedback/acquis_time_clean.json"
+  )
+
+acquis_users_clean <- replacePeriodsWithScores(acquis_users)
+names(acquis_users_clean) <- tolower(names(acquis_users_clean))
+acquis_users_clean <- acquis_users_clean %>% 
+  select(
+    !c(conversions, total_revenue)
+  ) %>% 
+  rename(
+    source = session_source
+  ) %>% 
+  mutate(
+    users = as.integer(users)
+  ) %T>% 
+  write_json(
+    "output/clean_data/analytics_feedback/acquis_users_clean.json"
+  )
+```
+
+## Feedback
+
+Cleaning the feedback data was pretty easy besides not being able to figure out why I couldn't convert the blankspaces to `NA`s. Felt like I tried everything, so I gave up. If I want to pick this back up, start with trying to extract the regex characters of the missing values as doing it the other way around wasn't working. A work around for the multiple choice questions was to set the levels for the factor and anything left over (the blanks) get converted to `NA`s.
+
+```{r}
+feedback_clean <- feedback %>% 
+  rename(
+    submission_id = submissionid,
+    key_takeaway = answer1,
+    actions_result = answer2,
+    actions_be = answer3,
+    easy_to_understand = answer4,
+    improvments_suggestions = answer5,
+    anything_else = answer6
+  ) %>% 
+  filter(
+    !str_detect(
+      key_takeaway,
+      "test|Test|выплат|готовы")
+  ) %>% 
+  filter(
+    !submission_id %in% c(1:11, 47:49)
+  ) %T>% 
+  write_json(
+    "output/clean_data/analytics_feedback/feedback_clean.json"
+  )
+
+  # mutate(
+  #   across(
+  #     where(
+  #       is.character
+  #     ), ~na_if(., regex("[\S+]"))
+  #   )
+  # ) %>% 
+  # replace_with_na(
+  #   replace = list(
+  #     actions_result = ""
+  #   )
+  # )
+  # mutate(
+  #   across(
+  #     where(
+  #       is.character
+  #     ), trimws
+  #   )
+  # )
+# complete(feedback_clean)
+# 
+# feedback_clean$actions_result[feedback_clean$actions_result == " "] <- ""
+# 
+# x <- c("apple", "  ", " ", "")
+# str_detect(x, "^[\t]")
+# 
+# 
+# feedback_clean[feedback_clean$actions_result == " "]
+# 
+# str_replace()
+# 
+# 
+# apply(feedback_clean, c(1, 2), function(x) gsub("\\s", NA, x))
+
+```
+
+After removing test submissions of the feedback form and some dodgy answers, we went from `r dim(feedback)[1]` to `r dim(feedback_clean)[1]`.

@@ -1,0 +1,195 @@
+---
+title: "Threatened Australians: A model for catalysing conservation knowledge and action through a digital platform"
+geometry: margin=1in
+fontfamily: mathpazo
+fontsize: 11pt
+bibliography: /home/gareth/science/admin/bibliography/zotero_lib_exports/sees_pop_os_my_library.bib
+biblio-style: apsr
+link-citations: yes
+csl: /home/gareth/science/admin/bibliography/csls/apa.csl
+output:
+  word_document:
+    reference_docx: /home/gareth/science/admin/bibliography/word_templates/research_article_template.docx
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+## Authors
+
+Gareth S. Kindler^1,^\*, Nick Kelly^2^, James E.M. Watson^2^
+
+## Affiliations
+
+1.  School of Earth and Environmental Sciences, The University of
+    Queensland, St Lucia 4072, Australia
+2.  [Add your affil here please Nick] School, Queensland University of
+    Technology, suburb, postcode, Australia
+
+\***Corresponding author email**:
+[g.kindler\@uq.edu.au](mailto:g.kindler@uq.edu.au){.email}
+
+**Keywords**: threatened species, digital technology, conservation
+science, design
+
+\newpage
+
+## Questions
+
+What type of article is this?
+
+-   Consciousness raising/agenda setting article
+
+-   Review article
+
+    -   Surveying the parallel efforts of digital platforms in
+        conservation
+
+-   Data-driven article
+
+    -   We have a bit of data but not enough to centre it around it as
+        the data is a bit rubbish
+
+Why should we publish an article in a journal about it?
+
+-   Explain our experience and showcase the results
+
+-   Highlight the places we could have improved to inform future efforts
+
+-   Encourage more conservation scientists (or science in general) to do
+    digital interdisciplinary work
+
+What makes our tool unique?
+
+-   Conservation scientists collaborated with interaction designers
+
+-   It has the educational interactive/scientific element and leads
+    people to advocacy
+
+<!-- ## Model papers -->
+
+<!-- The papers I have found are about exploratory/educational/interactive -->
+
+<!-- tools that visualise some aspect of the author's work. That's not -->
+
+<!-- completely dissimilar to TA but it's not quite where we are at. I guess -->
+
+<!-- people/orgs who develop advocacy web apps like TA don't write about it -->
+
+<!-- in journals? -->
+
+<!-- -   VolcanNoseR - <https://doi.org/10.1038/s41598-020-76603-3> -->
+
+<!-- -   SpeciesMap - <https://doi.org/10.1007/s10531-012-0284-4> -->
+
+<!-- -   BioDem - <https://doi.org/10.1111/jbi.14256> -->
+
+<!-- -   Pop viability - <https://doi.org/10.1111/nrm.12120> -->
+
+<!-- -   Niggle - <https://doi.org/10.2196/21085> -->
+
+## Target journals
+
+Given where we want to publish this is determinant of the story, length,
+etc. In our previous meeting you mentioned James that you might reach
+out to an editor to suss out where might be interested.
+
+-   Any of conservation journal (?)
+-   Journal of Environmental Media
+    (<https://www.intellectbooks.com/journal-of-environmental-media>)
+
+# Draft
+
+## Abstract
+
+Government action for species conservation is dependent upon public
+support. Whilst scientists, NGOs, and government have developed tools
+that improve accessibility, they fall short of engaging the broader
+public. Here we discuss the Threatened Australians web app, which uses
+existing data to tell the story of threatened species occurrence within
+government constituency boundaries, as an attempt to facilitate public
+support and thus political action. By examining the development, launch,
+and maintenance, this helps inform/improve future efforts the
+conservation community make in engaging broader audiences.
+
+## Introduction
+
+Para 1. Biodiversity crisis in Australia. Summarise threatened species and ecosystems. The rates of species endangerment and ecosystem decay is on the increase. Keys refs: Kearney, Ward, State of Environments etc
+
+Para 2. On top of a biodiversity crisis, there is a conservation crisis in Australia. There conservation crisis is a lack of conservation attention focussed at the biodiversity crisis.  Key references National Audits, Samuel reviews, review and perspective papers by scientists (Reside etc) all show there is a lack of resources and action by leaders. Moreover, and related, there are clear shortfalls in Australians knowing or engaging with the issue. There is a clear need for new models in conservation to catalyse change.
+
+Para 3. Much hype around social media and apps to increase attention on social issues. Climate example, health examples? Yet in conservation, despite being a crisis discipline needing advocates, and wider society buy-in, there seems bereft of these social media initiatives connecting people to the problem. Most social media efforts in conservation and ecology has been focussed on the needs of the science (key refs include the papers already sent, we will need others) rather than disseminating the finding to the audience to the general public to advocate for change.
+
+Para 4. Here we provide a description of one of the first proactive attempts by a multidisciplinary team to provide a web app aimed at raising public attention around the species conservation crisis in Australia. Called “Threatened Australians”, its aim is to raise awareness of the plight of threatened species, specifically there locations and threats. It was linked to post code so to bring get local attention (Refs on need for local action) and timed before the 2022 federal election so as to bring attention specifically around federal politicians. Therefore the key spatial boundaries used were federal electorates. We describe the generation of the prototype and testing methods, public usage of the app once realised and how this varied across different electorates.
+
+## Methods
+
+We first created a prototype by doing XXXXX. We generated the data via XXX (describe this in detail(
+
+We then ran it by experts in five of Australia’s largest conservation NGOs groups via XX feedback sessions and then re-designed it and did another run. (This needs to be filled out). Via this process it was decided the app interface would cover the following aspects (summarise the app).
+
+Figure 1. an image of the front cover off the app showcasing its features.
+
+When released, a media release was sent out as was a conversation piece and efforts were made via different mechanisms to raise attention via social media (explain what was done).
+
+## Results
+
+Released XXX. Over the course of X days up to federal election, # Number of people and hits over time (Figure 2).
+
+Figure 2. a time series, including key media
+
+Number of electorates and density of hits across space. Describe patterns
+
+Figure 3. A map of Australia with hits.
+
+Number of species investigated and most popular species were XXX.
+
+Figure 4. a map of the locations of the top 5-10 species and how many hits they had, and a photo of each of them.
+
+## Discussion
+
+Para 1. We provide the first app that attempts to put species and threat information on Australia’s threatened species into the hands of the public. In the space of a month, -- users, across all dederal electorates engage with it showing there was widespread interest. There was also media interest, with ABC online story and over 30 radio interviews conducted on local stories around the country. The appetite seemed there.
+
+Para 2. This is a first attempt and done via just two rounds of review by NGOS. A more systematic way of doing this would be Y, X, and Z (use the theory in the paper that was shared to describe how to more robustly do it but also need to refer to other non biodiversity literature about what is working and what we could do better. ).
+
+Para 3. Further work is needed to catalyse not just linking the threat to place, but the actual actions needed to be activated in the place. This type of connection between people and actions is likely critical pathway to action.
+
+Para 4. There is also significant opportunities with the education dynamics and children. Children in schools increasingly use social media as part of their learning packages (refs) and a app that links education to awareness and advocacy is clearly missing.
+
+Concluding para. Our efforts are a first attempt to get over a gap in the conservation space around making people aware of the challenges biodiversity faces and what they can do about it. It takes advantage of significant gains in science over the past decade documenting ranges and threats to species (cite NESP 7.7) and tries to generate information in a accessible to the general public. More is needed to get action etc and we have attempted to provide one model to bridge the knowledge-advocacy gap.
+
+
+# Draft (old, by Gareth)
+
+## Introduction
+
+## Aim
+
+-   This paper is about explaining the development/design of
+    accessible/engaging digital platforms as a social
+    intervention/implementation
+
+-   And proposes a framework to aid future efforts
+
+## Gap in advocacy *[where we are at in 2022]*
+
+-   Details of current educational and advocacy efforts to promote
+    change
+
+-   Create a typology to show where the gap of digital tech in
+    conservation is (and/or existing conservation-focused web apps)
+
+## Case study of Threatened Australians
+
+-   Details of what we did and the outcomes
+
+-   How does this approach address the gap? Why is it useful here?
+
+-   What did we learn?
+
+## Future *[beyond 2022]*
+
+-   Propose a model for creating digital platforms
+
+    -   Advice on how to be successful in each of the phases:
+        development, testing, launch, media
