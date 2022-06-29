@@ -17,7 +17,9 @@ editor_options:
 
 ## Authors
 
-Gareth S. Kindler^1,^\*, Nick Kelly^2^, James E.M. Watson^2^
+Gareth S. Kindler^1,^\*, Nick Kelly^2^, James E.M. Watson^2^ [social
+scientist? (they get mad about not being included from the beginning),
+digital tech/advertising/GA4 wiz?, ]
 
 ## Affiliations
 
@@ -32,39 +34,11 @@ Gareth S. Kindler^1,^\*, Nick Kelly^2^, James E.M. Watson^2^
 **Keywords**: threatened species, digital technology, conservation
 science, design
 
+Target journals: Any of conservation journal (?), Journal of
+Environmental Media
+(<https://www.intellectbooks.com/journal-of-environmental-media>)
+
 \newpage
-
-## Questions
-
-What type of article is this?
-
--   Consciousness raising/agenda setting article
-
--   Review article
-
-    -   Surveying the parallel efforts of digital platforms in
-        conservation
-
--   Data-driven article
-
-    -   We have a bit of data but not enough to centre it around it as
-        the data is a bit rubbish
-
-Why should we publish an article in a journal about it?
-
--   Explain our experience and showcase the results
-
--   Highlight the places we could have improved to inform future efforts
-
--   Encourage more conservation scientists (or science in general) to do
-    digital interdisciplinary work
-
-What makes our tool unique?
-
--   Conservation scientists collaborated with interaction designers
-
--   It has the educational interactive/scientific element and leads
-    people to advocacy
 
 <!-- ## Model papers -->
 
@@ -88,16 +62,6 @@ What makes our tool unique?
 
 <!-- -   Niggle - <https://doi.org/10.2196/21085> -->
 
-## Target journals
-
-Given where we want to publish this is determinant of the story, length,
-etc. In our previous meeting you mentioned James that you might reach
-out to an editor to suss out where might be interested.
-
--   Any of conservation journal (?)
--   Journal of Environmental Media
-    (<https://www.intellectbooks.com/journal-of-environmental-media>)
-
 # Draft
 
 ## Abstract
@@ -114,82 +78,208 @@ conservation community make in engaging broader audiences.
 
 ## Introduction
 
-Para 1. Biodiversity crisis in Australia. Summarise threatened species and ecosystems. The rates of species endangerment and ecosystem decay is on the increase. Keys refs: Kearney, Ward, State of Environments etc
+### Para 1 - Biodiversity crisis in Australia
 
-Para 2. On top of a biodiversity crisis, there is a conservation crisis in Australia. There conservation crisis is a lack of conservation attention focussed at the biodiversity crisis.  Key references National Audits, Samuel reviews, review and perspective papers by scientists (Reside etc) all show there is a lack of resources and action by leaders. Moreover, and related, there are clear shortfalls in Australians knowing or engaging with the issue. There is a clear need for new models in conservation to catalyse change.
+Keys refs: Kearney, Ward, State of Environments etc
 
-Para 3. Much hype around social media and apps to increase attention on social issues. Climate example, health examples? Yet in conservation, despite being a crisis discipline needing advocates, and wider society buy-in, there seems bereft of these social media initiatives connecting people to the problem. Most social media efforts in conservation and ecology has been focussed on the needs of the science (key refs include the papers already sent, we will need others) rather than disseminating the finding to the audience to the general public to advocate for change.
+Summarise threatened species and ecosystems. The rates of species
+endangerment and ecosystem decay is on the increase.
 
-Para 4. Here we provide a description of one of the first proactive attempts by a multidisciplinary team to provide a web app aimed at raising public attention around the species conservation crisis in Australia. Called “Threatened Australians”, its aim is to raise awareness of the plight of threatened species, specifically there locations and threats. It was linked to post code so to bring get local attention (Refs on need for local action) and timed before the 2022 federal election so as to bring attention specifically around federal politicians. Therefore the key spatial boundaries used were federal electorates. We describe the generation of the prototype and testing methods, public usage of the app once realised and how this varied across different electorates.
+### Para 2 - Conservation crisis in Australia
+
+Key papers: @whitelawBiodiversityDataPublic2021,
+
+On top of a biodiversity crisis, there is a conservation crisis in
+Australia. There conservation crisis is a lack of conservation attention
+focussed at the biodiversity crisis. Key references National Audits,
+Samuel reviews, review and perspective papers by scientists (Reside etc)
+all show there is a lack of resources and action by leaders. Moreover,
+and related, there are clear shortfalls in Australians knowing or
+engaging with the issue. There is a clear need for new models in
+conservation to catalyse change.
+
+### Para 3 - Digital technology as an intervention for action
+
+Much hype around social media and apps to increase attention on social
+issues. Climate example, health examples? Yet in conservation, despite
+being a crisis discipline needing advocates, and wider society buy-in,
+there seems bereft of these social media initiatives connecting people
+to the problem. Most social media efforts in conservation and ecology
+has been focussed on the needs of the science (key refs include the
+papers already sent, we will need others) rather than disseminating the
+finding to the audience to the general public to advocate for change.
+
+### Para 4 - Objective/aims
+
+Here we provide a description of one of the first proactive attempts by
+a multidisciplinary team to provide a web app aimed at raising public
+attention around the species conservation crisis in Australia. Called
+"Threatened Australians", its aim is to raise awareness of the plight of
+threatened species, specifically there locations and threats. It was
+linked to post code so to bring get local attention (Refs on need for
+local action) and timed before the 2022 federal election so as to bring
+attention specifically around federal politicians. Therefore the key
+spatial boundaries used were federal electorates. We describe the
+generation of the prototype and testing methods, public usage of the app
+once realised and how this varied across different electorates.
 
 ## Methods
 
-We first created a prototype by doing XXXXX. We generated the data via XXX (describe this in detail(
+Key papers: @hendrieImpactMobilePhone2020,
 
-We then ran it by experts in five of Australia’s largest conservation NGOs groups via XX feedback sessions and then re-designed it and did another run. (This needs to be filled out). Via this process it was decided the app interface would cover the following aspects (summarise the app).
+### Para 1 - App design
 
-Figure 1. an image of the front cover off the app showcasing its features.
+We first created a prototype by doing XXXXX.
 
-When released, a media release was sent out as was a conversation piece and efforts were made via different mechanisms to raise attention via social media (explain what was done).
+We then ran it by experts in five of Australia's largest conservation
+NGOs groups via XX feedback sessions and then re-designed it and did
+another run. (This needs to be filled out). Via this process it was
+decided the app interface would cover the following aspects (summarise
+the app).
+
+Threatened Australians as a web app available at a web domain
+(threatened.org.au) through browser applications on mobile, desktop, and
+tablet.
+
+The primary outcome of the web app was communicating with elected
+representatives.
+
+We aggregated data from X sources.
+
+**Figure 1. an image of the front cover off the app showcasing its
+features OR images of key pages and how users are to move through them
+[@hendrieImpactMobilePhone2020]**
+
+### Para 2 - App deployment and media
+
+Accompanying the live version of the app was a media release, which was
+sent out to Australian local and international media outlets.
+Accompanying the release date (02/05/22) was a 'The Conversation"
+article and efforts were made via social media to promote the web app.
+
+When released, a media release was sent out as was a conversation piece
+and efforts were made via different mechanisms to raise attention via
+social media (explain what was done).
+
+Dom's media report here?
+
+### Para 3 - Data collection
+
+We generated the data via XXX (describe this in detail)
+
+Two data sources:
+
+Analytics:
+
+Data on website usage was collected via Google Analytics 4.
+
+Feedback:
+
+There were free-text questions but these provided misc results. We
+filtered these out and went with: Q: "Are you going to take any actions
+as a result of using the web app?"; Q: "The information on this website
+was easy to understand:".
+
+### Para 4 - Data processing and analysis
+
+How app usage data was extracted.
+
+Descriptive statistics of usage etc were used to...
 
 ## Results
 
-Released XXX. Over the course of X days up to federal election, # Number of people and hits over time (Figure 2).
+Research questions
 
-Figure 2. a time series, including key media
+-   How did our traffic acquisition change over time, drawn next to key
+    media events?
 
-Number of electorates and density of hits across space. Describe patterns
+-   How did
 
-Figure 3. A map of Australia with hits.
+### Para 1 - Description of users and timing
+
+Released XXX. #% of users prior to election day. Over the course of X
+days up to federal election, \# Number of people and hits over time
+(Figure 2). Over the
+
+**Figure 2. a time series of usage, including key media events**
+
+### Para 2 - How patterns differentiate
+
+Number of electorates and density of hits across space. Describe
+patterns
+
+**Figure 3. A map of Australia with hits.**
 
 Number of species investigated and most popular species were XXX.
 
-Figure 4. a map of the locations of the top 5-10 species and how many hits they had, and a photo of each of them.
+**Figure 4. a map of the locations of the top 5-10 species and how many
+hits they had, and a photo of each of them**
+
+**Figure 5. Sankey of movement throughout platform**
 
 ## Discussion
 
-Para 1. We provide the first app that attempts to put species and threat information on Australia’s threatened species into the hands of the public. In the space of a month, -- users, across all dederal electorates engage with it showing there was widespread interest. There was also media interest, with ABC online story and over 30 radio interviews conducted on local stories around the country. The appetite seemed there.
+### Para 1 - Summary
 
-Para 2. This is a first attempt and done via just two rounds of review by NGOS. A more systematic way of doing this would be Y, X, and Z (use the theory in the paper that was shared to describe how to more robustly do it but also need to refer to other non biodiversity literature about what is working and what we could do better. ).
+We provide the first app that attempts to put species and threat
+information on Australia's threatened species into the hands of the
+public. In the space of a month, -- users, across all federal
+electorates engage with it showing there was widespread interest. There
+was also media interest, with ABC online story and over 30 radio
+interviews conducted on local stories around the country. The appetite
+seemed there.
 
-Para 3. Further work is needed to catalyse not just linking the threat to place, but the actual actions needed to be activated in the place. This type of connection between people and actions is likely critical pathway to action.
+### Para 2 - How to do it more robustly
 
-Para 4. There is also significant opportunities with the education dynamics and children. Children in schools increasingly use social media as part of their learning packages (refs) and a app that links education to awareness and advocacy is clearly missing.
+This is a first attempt and done via just two rounds of review by NGOS.
+A more systematic way of doing this would be Y, X, and Z (use the theory
+in the paper that was shared to describe how to more robustly do it but
+also need to refer to other non biodiversity literature about what is
+working and what we could do better. ).
 
-Concluding para. Our efforts are a first attempt to get over a gap in the conservation space around making people aware of the challenges biodiversity faces and what they can do about it. It takes advantage of significant gains in science over the past decade documenting ranges and threats to species (cite NESP 7.7) and tries to generate information in a accessible to the general public. More is needed to get action etc and we have attempted to provide one model to bridge the knowledge-advocacy gap.
+### Para 3 - Further customisation/targeting is needed
 
+Further work is needed to catalyse not just linking the threat to place,
+but the actual actions needed to be activated in the place. This type of
+connection between people and actions is likely critical pathway to
+action.
 
-# Draft (old, by Gareth)
+Constantly evolving socio-political context
 
-## Introduction
+### Para 4 - Education opportunities
 
-## Aim
+There is also significant opportunities with the education dynamics and
+children. Children in schools increasingly use social media as part of
+their learning packages (refs) and a app that links education to
+awareness and advocacy is clearly missing.
 
--   This paper is about explaining the development/design of
-    accessible/engaging digital platforms as a social
-    intervention/implementation
+### Para 5 - Conclusion
 
--   And proposes a framework to aid future efforts
+Our efforts are a first attempt to get over a gap in the conservation
+space around making people aware of the challenges biodiversity faces
+and what they can do about it. It takes advantage of significant gains
+in science over the past decade documenting ranges and threats to
+species (cite NESP 7.7) and tries to generate information in a
+accessible to the general public. More is needed to get action etc and
+we have attempted to provide one model to bridge the knowledge-advocacy
+gap.
 
-## Gap in advocacy *[where we are at in 2022]*
+### Para X - Caveats
 
--   Details of current educational and advocacy efforts to promote
-    change
+-   Didn't organise anything prior to app release (lol)
 
--   Create a typology to show where the gap of digital tech in
-    conservation is (and/or existing conservation-focused web apps)
+## Supporting information
 
-## Case study of Threatened Australians
+## Acknowledgements
 
--   Details of what we did and the outcomes
+The authors would like to recognise...  
 
--   How does this approach address the gap? Why is it useful here?
+The authors declare no conflicts of interest. 
 
--   What did we learn?
+## Data
 
-## Future *[beyond 2022]*
+All data used to produce the Threatened Australians database is
+available on GitHub.
 
--   Propose a model for creating digital platforms
-
-    -   Advice on how to be successful in each of the phases:
-        development, testing, launch, media
+Raw, clean, and analysed data produced by Threatened Australians is
+available on UQ eSpace
