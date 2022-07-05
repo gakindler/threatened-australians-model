@@ -50,22 +50,22 @@ We've got two sources of *data* that were produced by **Threatened Australians**
 
 ```{r import}
 engag_title_clean <- fromJSON(
-    "output/clean_data/analytics_feedback/engag_title_clean.json"
+    "data/clean_data/engag_title_clean.json"
   )
 acquis_source_clean <- fromJSON(
-    "output/clean_data/analytics_feedback/acquis_source_clean.json"
+    "data/clean_data/acquis_source_clean.json"
   )
 acquis_time_clean <- fromJSON(
-    "output/clean_data/analytics_feedback/acquis_time_clean.json"
+    "data/clean_data/acquis_time_clean.json"
   )
 acquis_users_clean <- fromJSON(
-    "output/clean_data/analytics_feedback/acquis_users_clean.json"
+    "data/clean_data/acquis_users_clean.json"
   )
 feedback_clean <- fromJSON(
-    "output/clean_data/analytics_feedback/feedback_clean.json"
+    "data/clean_data/feedback_clean.json"
   )
 demo <- fromJSON(
-    "output/clean_data/demo_clean.json"
+    "data/clean_data/demo_clean.json"
 )
 ```
 
@@ -82,8 +82,8 @@ Tables are sort-able - click on a column to cycle through ascending/descending
 **Which are the top ten most viewed pages on our website?**
 
 ```{r warning=FALSE}
-top_ten_pgs <- engag_title_clean %>% 
-  arrange(desc(views)) %>% 
+top_ten_pgs <- engag_title_clean %>%
+  arrange(desc(views)) %>%
   slice(1:10)
 ggplotly(
   ggplot(
@@ -93,7 +93,7 @@ ggplotly(
   # x = page_title,
   y = views,
   text = paste(
-    "Page:", page_title, "\n", 
+    "Page:", page_title, "\n",
     "Views:", views
   )
 ) + geom_bar(
@@ -102,7 +102,7 @@ ggplotly(
  labs(
     x = NULL,
     y = "Number of views"
-  ) + 
+  ) +
     theme_classic()
 ,
 tooltip = "text"
@@ -112,7 +112,7 @@ tooltip = "text"
 I'm providing the full table here so you can explore it as I don't see an interesting story in it other than the first three columns and perhaps the first 30 rows. Just to minimise the data flying around I've filtered it to this but in total there are `r dim(engag_title_clean)[1]` rows.
 
 ```{r}
-engag_title_clean %>% 
+engag_title_clean %>%
   mutate(
     across(
       c(
@@ -122,8 +122,8 @@ engag_title_clean %>%
       signif,
       digits = 3
     )
-  ) %>% 
-  slice(1:30) %>% 
+  ) %>%
+  slice(1:30) %>%
   reactable()
 ```
 
@@ -132,19 +132,19 @@ engag_title_clean %>%
 The Species/electorate pages are the page users get shown once we connect them with their electorate. So once we have their postcode, we show them their electorate with the "More species" buttons that allow them to cycle through the species within their electorate.
 
 ```{r, message = FALSE}
-species_title <- engag_title_clean %>% 
+species_title <- engag_title_clean %>%
   filter(
     !str_detect(
       page_title,
       "Help|Survey|About|Resources|Browse|Choose|Home|Australians"
     )
-  ) %>% 
+  ) %>%
   filter(
     !grepl(
       "^Large-eared Pied Bat$",
       page_title
     )
-  ) %>% 
+  ) %>%
   mutate(
     vernacular_name = word(
       page_title, 1, sep = fixed(" in ")
@@ -155,7 +155,7 @@ species_title <- engag_title_clean %>%
       page_title, 2, sep = fixed(" in ")
     )
   ) %>%
-  full_join(demo) %>% 
+  full_join(demo) %>%
   relocate(
     page_title, electorate, state_territory, state_territory_abbrev, demographic_class, vernacular_name
   )
@@ -168,9 +168,9 @@ As expected, the most viewed species are those which were most distributed acros
 However, when we look at `average_engagement_time`, things are perhaps slightly more interesting, though not really... "a short-tongued bee" trumps an Emerald Dove. Big grain of salt.
 
 ```{r}
-species_title %>% 
-  group_by(vernacular_name) %>% 
-  summarise(average_engagement_time = mean(average_engagement_time)) %>% 
+species_title %>%
+  group_by(vernacular_name) %>%
+  summarise(average_engagement_time = mean(average_engagement_time)) %>%
   arrange(desc(average_engagement_time)) %>%
   mutate(
     across(
@@ -178,7 +178,7 @@ species_title %>%
       signif,
       digits = 3
     )
-  ) %>% 
+  ) %>%
   reactable(
     columns = list(
       vernacular_name = colDef(name = "Vernacular name"),
@@ -190,10 +190,10 @@ species_title %>%
 Now I'm grouping by electorate, across species. For example, I want to know which electorates produced the most species "views".
 
 ```{r}
-species_title %>% 
-  group_by(electorate) %>% 
-  summarise(views = sum(views)) %>% 
-  arrange(desc(views)) %>% 
+species_title %>%
+  group_by(electorate) %>%
+  summarise(views = sum(views)) %>%
+  arrange(desc(views)) %>%
   reactable(
     columns = list(
       electorate = colDef(name = "Electorate"),
@@ -205,13 +205,13 @@ species_title %>%
 #### How to Help pages
 
 ```{r message = FALSE}
-help_title <- engag_title_clean %>% 
+help_title <- engag_title_clean %>%
   filter(
     str_detect(
       page_title,
       "Help"
     )
-  ) %>% 
+  ) %>%
   filter(
     !str_detect(
       page_title,
@@ -223,7 +223,7 @@ help_title <- engag_title_clean %>%
       page_title, 2, sep = fixed(" in ")
     )
   ) %>%
-  full_join(., demo) %>% 
+  full_join(., demo) %>%
   relocate(
     page_title, electorate, state_territory, state_territory_abbrev, demographic_class
   )
@@ -236,10 +236,10 @@ Across the How to Help pages we received `r sum(help_title$views)` views and `r 
 These same pages produced the following state by state breakdown of users:
 
 ```{r}
-help_title %>% 
-  group_by(state_territory_abbrev) %>% 
-  summarise(sum_users = sum(users)) %>% 
-  arrange(desc(sum_users)) %>% 
+help_title %>%
+  group_by(state_territory_abbrev) %>%
+  summarise(sum_users = sum(users)) %>%
+  arrange(desc(sum_users)) %>%
   reactable(
     columns = list(
       state_territory_abbrev = colDef(name = "State or territory"),
@@ -255,7 +255,7 @@ Across all electorates, grouped next to their fellow electorates within each sta
 NB: hover your mouse over columns for more info, you can zoom in and out, click and drag etc. If you get stuck double click and you'll be taken back to the original position.
 
 ```{r}
-help_ordered <- help_title %>% 
+help_ordered <- help_title %>%
   # mutate(
   #   state_territory_abbrev = factor(
   #     state_territory_abbrev, levels = c(
@@ -263,10 +263,10 @@ help_ordered <- help_title %>%
   #       )
   #     )
   #   ) %>%
-  arrange(state_territory_abbrev, desc(users)) %>% 
+  arrange(state_territory_abbrev, desc(users)) %>%
   mutate(electorate = factor(electorate, unique(electorate)))
 # help_ordered$state_territory_abbrev <- fct_reorder(
-#   help_ordered$state_territory_abbrev, 
+#   help_ordered$state_territory_abbrev,
 #   help_ordered$users
 # )
 ggplotly(
@@ -276,7 +276,7 @@ ggplot(help_ordered
     y = users,
     fill = state_territory_abbrev,
     text = paste(
-      "Electorate:", electorate, 
+      "Electorate:", electorate,
       "\nState or territory:", state_territory_abbrev,
       "\nUsers:", users)
   ) + geom_bar(
@@ -290,10 +290,10 @@ ggplot(help_ordered
     name = "State or territory",
     option = "H"
     # guide = guide_legend(reverse = T)
-  ) + 
+  ) +
   labs(
     y = "Number of users"
-  ) + 
+  ) +
   # coord_flip() +
   theme_classic() +
     theme(
@@ -311,18 +311,18 @@ ggplot(help_ordered
 **How did our traffic change over time?**
 
 ```{r}
-acquis_time_long_clean <- acquis_time_clean %>% 
+acquis_time_long_clean <- acquis_time_clean %>%
   pivot_longer(
-    cols = direct:facebook, 
+    cols = direct:facebook,
     names_to = "source",
     values_to = "users"
-  ) %>% 
+  ) %>%
   mutate(
     users = as.integer(users)
-  ) %>% 
+  ) %>%
   mutate(
     date = as.Date(date)
-  ) %>% 
+  ) %>%
   mutate(
     source = factor(
       source,
@@ -332,12 +332,12 @@ acquis_time_long_clean <- acquis_time_clean %>%
 ggplotly(
   ggplot(
   acquis_time_long_clean
-  ) + 
+  ) +
   aes(
     x = date,
     y = users,
     fill = source
-  ) + 
+  ) +
   geom_area(
   ) +
   scale_fill_viridis(
@@ -366,7 +366,7 @@ ggplotly(
 **Where did our traffic come from?**
 
 ```{r}
-acquis_source_clean %>% 
+acquis_source_clean %>%
   reactable(
     columns = list(
       session_source = colDef(name = "Session source"),
@@ -380,22 +380,22 @@ acquis_source_clean %>%
 **Q: What was your key takeaway from the Threatened Australians web app?**
 
 ```{r}
-feedback_clean %>% 
-  select(key_takeaway) %>% 
+feedback_clean %>%
+  select(key_takeaway) %>%
   reactable()
 ```
 
 **Q: Are you going to take any actions as a result of using the web app?**
 
 ```{r}
-feedback_clean %>% 
+feedback_clean %>%
   mutate(
     actions_result = factor(actions_result,
       levels = c(
         "No", "Unsure", "Probably", "Yes"
     )
   )
-  ) %>% 
+  ) %>%
   ggplot() +
   aes(x = actions_result) +
   geom_bar() +
@@ -413,23 +413,23 @@ Don't make the same mistake I made which was searching what "Licking chu papi" m
 Glad I don't have kids and have to help them navigate the internet world of today. Have fun with that James!
 
 ```{r}
-feedback_clean %>% 
-  select(actions_be) %>% 
+feedback_clean %>%
+  select(actions_be) %>%
   reactable()
 ```
 
 **Q: The information on this website was easy to understand:**
 
 ```{r}
-feedback_clean %>% 
+feedback_clean %>%
   mutate(
     easy_to_understand = factor(easy_to_understand,
       levels = c(
-        "Strongly disagree", "Disagree", 
+        "Strongly disagree", "Disagree",
         "Neither agree or disagree", "Agree", "Strongly agree"
         )
       )
-    ) %>% 
+    ) %>%
   ggplot() +
   aes(x = easy_to_understand) +
   geom_bar() +
@@ -443,15 +443,15 @@ feedback_clean %>%
 **Q: Do you have any suggestions for ways that we might improve the project?**
 
 ```{r}
-feedback_clean %>% 
-  select(improvments_suggestions) %>% 
+feedback_clean %>%
+  select(improvments_suggestions) %>%
   reactable()
 ```
 
 **Q: Is there anything else that you would like to share with us?**
 
 ```{r}
-feedback_clean %>% 
-  select(anything_else) %>% 
+feedback_clean %>%
+  select(anything_else) %>%
   reactable()
 ```

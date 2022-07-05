@@ -22,7 +22,7 @@ library(units)
 library(readxl)
 library(stringr)
 library(plotly)
-library(googleAnalyticsR)
+# library(RGoogleAnalytics)
 library(forcats)
 library(reactable)
 library(readODS)
@@ -32,66 +32,101 @@ library(ggridges)
 library(networkD3)
 ```
 
-# Data
+# Import data
 
-We've got two sources of *data* that were produced by **Threatened Australians**, they are:
+We've got two sources of *data* that were produced by **Threatened Australians**, the first of which is:
 
-1.  Analytics data - this includes information on page views, clicks, users. This is information is collected via Google Analytics. It structures the data into different *reports* with a couple of dimensions for each. The ones I'm currently interested in are:
+## Analytics data
 
-    -   Engagement report - pages and screens viewed by users. This includes the number of times a specific page was viewed, how many users, how many events (e.g. clicks, scrolls).
+Initially, I was importing this via the predetermined reports (`old` directory in `raw_data`). Then I started to use the *explore* tab on GA4, except this data came with awful messy-ness that wasn't easy to clean on import. Then I tried endlessly to use the API (failed miserably, I think because the Google overlords recently changed the process but was quite happy to provide awful and non-updated documentation on it). I then discovered GA4 only holds data for 2 months. I thus had to export all the data I needed. I gave in to manually changing the tables from the explore tab of GA4 for easier import as figuring out how to do it R was going to be educational but a nightmare (I hate myself). I made a copy of each downloaded file (`/raw_data/raw_downloaded`) and put the edited in the `raw_data` folder.
 
-    -   Acquisition report - how we acquired traffic/users
 
-    There are other reports such as demographics (kinda unreliable), and tech (what OS and devices people used to access).
+Acquisition report - how we acquired traffic/users
 
-2.  Feedback data - this is a single data frame with the answers to the feedback survey
+```{r acquisition reports}
+acquis_date <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_acquisition_date_source.ods"
+)
 
-# Import
+acquis_traffic <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.ods"
+)
+```
 
-## From raw csv
+Engagement report - pages and screens viewed by users. This includes the number of times a specific page was viewed, how many users, how many events (e.g. clicks, scrolls).
 
-Export the csv of the appropriate report from the Google Analytics page.
-
-```{r import}
+```{r engagement reports}
 # path_report <- read.csv(
 #   "data/TA_analytics/22-05-02_22-06-14_page_path_report.csv",
 #   skip = 10020
 # )
-engag_title <- read.csv(
-  "data/TA_analytics/22-05-02_22-06-14_engagement_title.csv",
-  skip = 7331
-)
-acquis_time <- read.csv(
-  "data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.csv",
-  skip = 8
-) %>% 
-  filter(
-    !row_number() >= 45)
-acquis_source <- read.csv(
-  "data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.csv",
-  skip = 58
-) %>% 
-  filter(
-    !row_number() >= 105
-  )
-acquis_users <- read.csv(
-  "data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.csv",
-  skip = 168
-)
-# elects <- fromJSON(
-#   "output/clean_data/MP_info_clean.json"
-# )
-demo <- fromJSON(
-    "output/clean_data/demo_clean.json"
-)
-feedback <- read_ods(
-  "data/TA_feedback_output/21-to-22-06-16_feedback.ods"
+engag_title <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_engagement_title.ods"
 )
 ```
 
-## From the GA API
+Demographics report - cities, regions etc
 
-The typical package for this (`googleAnalyticsR`) was failing to get my account info (`ga_account_info()`) so I scrapped doing it this way, for the time being.
+```{r demographics report}
+demo_city <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_demographics_aus_city.ods"
+)
+
+demo_region <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_demographics_aus_region.ods"
+)
+
+demo_country <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_demographics_country.ods"
+)
+```
+
+Technology report - device type people used
+
+There is other information in this report such as dated info.
+
+```{r tech report}
+tech <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_tech_device_category.ods"
+)
+```
+
+Links - This is the event counts from the links that were clicked on
+
+```{r}
+links <- read_ods(
+  "data/raw_data/TA_analytics/22-05-04_22-06-14_links_au_only.ods"
+)
+```
+
+## Feedback
+
+The other type of data is feedback data - this is a single data frame with the answers to the feedback survey
+
+Export it by copy and pasting the data into a new spreadsheet (omg so old school, omg I'm so cool cause I know what an API is, OMG I'm pathetic).
+
+```{r feedback}
+feedback <- read_ods(
+  "data/raw_data/TA_feedback_output/21-to-22-06-16_feedback.ods"
+)
+```
+
+## Misc
+
+Other data we are interested in attaching to the analytics and (possibly) the feedback data.
+
+```{r misc}
+# elects <- fromJSON(
+#   "output/clean_data/MP_info_clean.json"
+# )
+# file.copy(
+#     "/home/gareth/science/projects/electoral/threatened_australians/output/clean_data/demo_clean.json",
+#     "/home/gareth/science/projects/electoral/threatened_australians_research/data/clean_data/demo_clean.json"
+#     )
+demo_elects <- fromJSON(
+    "data/clean_data/demo_clean.json"
+)
+```
 
 # Clean
 
@@ -109,54 +144,15 @@ replacePeriodsWithScores <- function(x){
 }
 ```
 
-### Engagement
-
-I chose to use the by title engagement report as opposed to the by path as it was simply cleaner and slightly more informative. Even if the page titles use the vernacular name of species.
-
-```{r}
-engag_title_clean <- replacePeriodsWithScores(engag_title)
-names(engag_title_clean) <- tolower(names(engag_title_clean))
-engag_title_clean <- engag_title_clean %>% 
-  rename(
-    page_title = page_title_and_screen_class,
-  ) %>% 
-  select(
-    page_title, views, users, views_per_user, average_engagement_time,
-    unique_user_scrolls, event_count
-  ) %>%
-  mutate(
-    page_title = str_remove_all(
-        .$page_title,
-        coll(" - Threatened Australians")
-    )
-  ) %>% 
-  mutate(
-    page_title = str_replace(
-      .$page_title,
-      "Threatened Australians - find threatened species near you",
-      "Home"
-    )
-  ) %>% 
-  filter(
-    !str_detect(
-      page_title,
-      "絶滅の危機に瀕|https://www.threatened.o|wills|ausztrálok"
-    )
-  ) %T>% 
-  write_json(
-    "output/clean_data/analytics_feedback/engag_title_clean.json"
-  )
-```
-
 ### Acquisition
 
-```{r}
+```{r acquisition}
 acquis_source_clean <- replacePeriodsWithScores(acquis_source)
 names(acquis_source_clean) <- tolower(names(acquis_source_clean))
-acquis_source_clean <- acquis_source_clean %>% 
+acquis_source_clean <- acquis_source_clean %>%
   mutate(
     users = as.integer(users)
-  ) %T>% 
+  ) %T>%
   write_json(
     "output/clean_data/analytics_feedback/acquis_source_clean.json"
   )
@@ -164,16 +160,16 @@ acquis_source_clean <- acquis_source_clean %>%
 names(acquis_time) <- tolower(names(acquis_time))
 names(acquis_time)[names(acquis_time) == 'x.direct.'] <- 'direct'
 date_range <- seq.Date(
-  as.Date("2022/05/02", tz = AEST), 
-  as.Date("2022/06/14", tz = AEST), 
+  as.Date("2022/05/02", tz = AEST),
+  as.Date("2022/06/14", tz = AEST),
   "day")
 acquis_time$date <- date_range
-acquis_time_clean <- acquis_time %>% 
-  select(!day) %>% 
+acquis_time_clean <- acquis_time %>%
+  select(!day) %>%
   relocate(
     date,
     .before = direct
-  ) %>% 
+  ) %>%
   rename(
     abc = abc.net.au,
     convo = theconversation.com,
@@ -185,27 +181,80 @@ acquis_time_clean <- acquis_time %>%
 
 acquis_users_clean <- replacePeriodsWithScores(acquis_users)
 names(acquis_users_clean) <- tolower(names(acquis_users_clean))
-acquis_users_clean <- acquis_users_clean %>% 
+acquis_users_clean <- acquis_users_clean %>%
   select(
     !c(conversions, total_revenue)
-  ) %>% 
+  ) %>%
   rename(
     source = session_source
-  ) %>% 
+  ) %>%
   mutate(
     users = as.integer(users)
-  ) %T>% 
+  ) %T>%
   write_json(
     "output/clean_data/analytics_feedback/acquis_users_clean.json"
   )
 ```
+
+### Engagement
+
+I chose to use the by title engagement report as opposed to the by path as it was simply cleaner and slightly more informative. Even if the page titles use the vernacular name of species.
+
+```{r enagagement}
+engag_title_clean <- replacePeriodsWithScores(engag_title)
+names(engag_title_clean) <- tolower(names(engag_title_clean))
+engag_title_clean <- engag_title_clean %>%
+  rename(
+    page_title = page_title_and_screen_class,
+  ) %>%
+  select(
+    page_title, views, users, views_per_user, average_engagement_time,
+    unique_user_scrolls, event_count
+  ) %>%
+  mutate(
+    page_title = str_remove_all(
+        .$page_title,
+        coll(" - Threatened Australians")
+    )
+  ) %>%
+  mutate(
+    page_title = str_replace(
+      .$page_title,
+      "Threatened Australians - find threatened species near you",
+      "Home"
+    )
+  ) %>%
+  filter(
+    !str_detect(
+      page_title,
+      "絶滅の危機に瀕|https://www.threatened.o|wills|ausztrálok"
+    )
+  ) %T>%
+  write_json(
+    "output/clean_data/analytics_feedback/engag_title_clean.json"
+  )
+```
+
+### Demographics
+
+```{r demographics}
+demo_city_clean <- replacePeriodsWithScores(demo_city)
+names(demo_city_clean) <- tolower(names(demo_city_clean))
+
+demo_country_clean <- replacePeriodsWithScores(demo_country)
+names(demo_country_clean) <- tolower(names(demo_country_clean))
+
+demo_region_clean <- replacePeriodsWithScores(demo_region)
+names(demo_region_clean) <- tolower(names(demo_region_clean))
+```
+
 
 ## Feedback
 
 Cleaning the feedback data was pretty easy besides not being able to figure out why I couldn't convert the blankspaces to `NA`s. Felt like I tried everything, so I gave up. If I want to pick this back up, start with trying to extract the regex characters of the missing values as doing it the other way around wasn't working. A work around for the multiple choice questions was to set the levels for the factor and anything left over (the blanks) get converted to `NA`s.
 
 ```{r}
-feedback_clean <- feedback %>% 
+feedback_clean <- feedback %>%
   rename(
     submission_id = submissionid,
     key_takeaway = answer1,
@@ -214,15 +263,15 @@ feedback_clean <- feedback %>%
     easy_to_understand = answer4,
     improvments_suggestions = answer5,
     anything_else = answer6
-  ) %>% 
+  ) %>%
   filter(
     !str_detect(
       key_takeaway,
       "test|Test|выплат|готовы")
-  ) %>% 
+  ) %>%
   filter(
     !submission_id %in% c(1:11, 47:49)
-  ) %T>% 
+  ) %T>%
   write_json(
     "output/clean_data/analytics_feedback/feedback_clean.json"
   )
@@ -233,7 +282,7 @@ feedback_clean <- feedback %>%
   #       is.character
   #     ), ~na_if(., regex("[\S+]"))
   #   )
-  # ) %>% 
+  # ) %>%
   # replace_with_na(
   #   replace = list(
   #     actions_result = ""
@@ -247,18 +296,18 @@ feedback_clean <- feedback %>%
   #   )
   # )
 # complete(feedback_clean)
-# 
+#
 # feedback_clean$actions_result[feedback_clean$actions_result == " "] <- ""
-# 
+#
 # x <- c("apple", "  ", " ", "")
 # str_detect(x, "^[\t]")
-# 
-# 
+#
+#
 # feedback_clean[feedback_clean$actions_result == " "]
-# 
+#
 # str_replace()
-# 
-# 
+#
+#
 # apply(feedback_clean, c(1, 2), function(x) gsub("\\s", NA, x))
 
 ```
