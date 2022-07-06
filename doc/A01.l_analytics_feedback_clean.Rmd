@@ -43,7 +43,7 @@ Initially, I was importing this via the predetermined reports (`old` directory i
 
 Acquisition report - how we acquired traffic/users
 
-```{r acquisition reports}
+```{r read-acquisition}
 acquis_date <- read_ods(
   "data/raw_data/TA_analytics/22-05-02_22-06-14_acquisition_date_source.ods"
 )
@@ -55,7 +55,7 @@ acquis_traffic <- read_ods(
 
 Engagement report - pages and screens viewed by users. This includes the number of times a specific page was viewed, how many users, how many events (e.g. clicks, scrolls).
 
-```{r engagement reports}
+```{r read-engagement}
 # path_report <- read.csv(
 #   "data/TA_analytics/22-05-02_22-06-14_page_path_report.csv",
 #   skip = 10020
@@ -67,7 +67,7 @@ engag_title <- read_ods(
 
 Demographics report - cities, regions etc
 
-```{r demographics report}
+```{r read-demographics}
 demo_city <- read_ods(
   "data/raw_data/TA_analytics/22-05-02_22-06-14_demographics_aus_city.ods"
 )
@@ -85,7 +85,7 @@ Technology report - device type people used
 
 There is other information in this report such as dated info.
 
-```{r tech report}
+```{r read-technology}
 tech <- read_ods(
   "data/raw_data/TA_analytics/22-05-02_22-06-14_tech_device_category.ods"
 )
@@ -93,7 +93,9 @@ tech <- read_ods(
 
 Links - This is the event counts from the links that were clicked on
 
-```{r}
+Due to GA4 holding the data for two months, and my ignorance of this, the links data starts on the 4th of May as opposed to the 2nd of May, like with the other datasets.
+
+```{r read-links}
 links <- read_ods(
   "data/raw_data/TA_analytics/22-05-04_22-06-14_links_au_only.ods"
 )
@@ -103,9 +105,9 @@ links <- read_ods(
 
 The other type of data is feedback data - this is a single data frame with the answers to the feedback survey
 
-Export it by copy and pasting the data into a new spreadsheet (omg so old school, omg I'm so cool cause I know what an API is, OMG I'm pathetic).
+Export it by copy and pasting the data into a new spreadsheet.
 
-```{r feedback}
+```{r read-feedback}
 feedback <- read_ods(
   "data/raw_data/TA_feedback_output/21-to-22-06-16_feedback.ods"
 )
@@ -115,7 +117,7 @@ feedback <- read_ods(
 
 Other data we are interested in attaching to the analytics and (possibly) the feedback data.
 
-```{r misc}
+```{r read-misc}
 # elects <- fromJSON(
 #   "output/clean_data/MP_info_clean.json"
 # )
@@ -142,75 +144,104 @@ replacePeriodsWithScores <- function(x){
     colnames(x)
   ); x
 }
+replaceSpacesWithUnderscores <- function(x){
+  colnames(x) <- gsub(
+    "\\s",
+    "\\_",
+    colnames(x)
+  ); x
+}
 ```
 
 ### Acquisition
 
-```{r acquisition}
-acquis_source_clean <- replacePeriodsWithScores(acquis_source)
-names(acquis_source_clean) <- tolower(names(acquis_source_clean))
-acquis_source_clean <- acquis_source_clean %>%
+```{r acquisition-traffic-clean}
+acquis_traffic <- replaceSpacesWithUnderscores(acquis_traffic)
+names(acquis_traffic) <- tolower(names(acquis_traffic))
+acquis_traffic_clean <- acquis_traffic %>%
   mutate(
-    users = as.integer(users)
-  ) %T>%
-  write_json(
-    "output/clean_data/analytics_feedback/acquis_source_clean.json"
-  )
-
-names(acquis_time) <- tolower(names(acquis_time))
-names(acquis_time)[names(acquis_time) == 'x.direct.'] <- 'direct'
-date_range <- seq.Date(
-  as.Date("2022/05/02", tz = AEST),
-  as.Date("2022/06/14", tz = AEST),
-  "day")
-acquis_time$date <- date_range
-acquis_time_clean <- acquis_time %>%
-  select(!day) %>%
-  relocate(
-    date,
-    .before = direct
+    active_users = as.integer(active_users)
   ) %>%
-  rename(
-    abc = abc.net.au,
-    convo = theconversation.com,
-    facebook = m.facebook.com
+  mutate(
+    first_user_source = str_replace(
+      .$first_user_source,
+      "(direct)",
+      "direct"
+    )
   ) %T>%
   write_json(
-    "output/clean_data/analytics_feedback/acquis_time_clean.json"
+    "data/clean_data/acquis_traffic_clean.json"
   )
+```
 
-acquis_users_clean <- replacePeriodsWithScores(acquis_users)
-names(acquis_users_clean) <- tolower(names(acquis_users_clean))
-acquis_users_clean <- acquis_users_clean %>%
+```{r acquisition-date-clean}
+acquis_date <- replacePeriodsWithScores(acquis_date)
+names(acquis_date) <- tolower(names(acquis_date))
+acquis_date_clean <- acquis_date %>%
+  rename(
+    date = `session source`,
+    direct = `(direct)`,
+    abc = abc_net_au,
+    theconversation = theconversation_com,
+    facebook = m_facebook_com,
+    uq = uq_edu_au,
+    facebook2 = lm_facebook_com,
+    facebook3 = l_facebook_com,
+    twitter = t_co,
+    reddit = out_reddit_com,
+    reddit2 = reddit_com,
+    bing = bing,
+    google_classroom = classroom_google_com,
+    instagram = l_instagram_com,
+    linkedin = linkedin_com,
+    themandarin = themandarin_com_au,
+    we_are_explorers = weareexplorers_co,
+    abc2 = `amp-abc-net-au_cdn_ampproject_org`,
+    google_docs = docs_google_com,
+    bushwalk_updates = `bushwalk updates`
+  ) %>%
+  mutate(
+    date = as.Date(as.character(date), "%Y%m%d")
+  ) %>%
+  mutate(
+    facebook = facebook + facebook2 + facebook3,
+    reddit = reddit + reddit2,
+    abc = abc + abc2
+  ) %>%
   select(
-    !c(conversions, total_revenue)
+    !c(facebook2, facebook3, reddit2, abc2)
+  ) %>%
+  pivot_longer(
+    cols = -date,
   ) %>%
   rename(
-    source = session_source
-  ) %>%
-  mutate(
-    users = as.integer(users)
+    session_source = name,
+    users = value
   ) %T>%
   write_json(
-    "output/clean_data/analytics_feedback/acquis_users_clean.json"
+    "data/clean_data/acquis_time_clean.json"
   )
 ```
 
 ### Engagement
 
-I chose to use the by title engagement report as opposed to the by path as it was simply cleaner and slightly more informative. Even if the page titles use the vernacular name of species.
+I chose to use the by title engagement report as opposed to the by path as it was simply cleaner and slightly more informative. Even if the page titles use the vernacular name of species, which isn't distinct like scientific name or their taxon ID.
+
+`engaged_sessions` is probably the most informative metric. Google defines as:
+
+> The number of sessions that lasted 10 seconds or longer, or had 1 or more conversion events or 2 or more page or screen views.
+
+For pages such as "choose your electorate" thi metric doesn't work but we are not interested in this page.
+
+For what all the columns mean, check [this](https://support.google.com/analytics/answer/9143382).
 
 ```{r enagagement}
-engag_title_clean <- replacePeriodsWithScores(engag_title)
-names(engag_title_clean) <- tolower(names(engag_title_clean))
-engag_title_clean <- engag_title_clean %>%
-  rename(
-    page_title = page_title_and_screen_class,
-  ) %>%
-  select(
-    page_title, views, users, views_per_user, average_engagement_time,
-    unique_user_scrolls, event_count
-  ) %>%
+engag_title <- replaceSpacesWithUnderscores(engag_title)
+names(engag_title) <- tolower(names(engag_title))
+engag_title_clean <- engag_title %>%
+  # select(
+  #   page_title, active_users, new_users, engaged_sessions, event_count
+  # ) %>%
   mutate(
     page_title = str_remove_all(
         .$page_title,
@@ -231,29 +262,115 @@ engag_title_clean <- engag_title_clean %>%
     )
   ) %T>%
   write_json(
-    "output/clean_data/analytics_feedback/engag_title_clean.json"
+    "data/clean_data/engag_title_clean.json"
   )
 ```
 
 ### Demographics
 
-```{r demographics}
-demo_city_clean <- replacePeriodsWithScores(demo_city)
-names(demo_city_clean) <- tolower(names(demo_city_clean))
-
-demo_country_clean <- replacePeriodsWithScores(demo_country)
-names(demo_country_clean) <- tolower(names(demo_country_clean))
-
-demo_region_clean <- replacePeriodsWithScores(demo_region)
-names(demo_region_clean) <- tolower(names(demo_region_clean))
+```{r demo-city-clean}
+demo_city <- replaceSpacesWithUnderscores(demo_city)
+names(demo_city) <- tolower(names(demo_city))
+demo_city_clean <- demo_city %>%
+  mutate(
+    city = str_replace(
+      .$city,
+      "\\(not set\\)",
+      "Unknown"
+    )
+  ) %T>%
+  write_json(
+    "data/clean_data/demo_city_clean.json"
+  )
 ```
 
+```{r demo-country-clean}
+demo_country <- replaceSpacesWithUnderscores(demo_country)
+names(demo_country) <- tolower(names(demo_country))
+demo_country_clean <- demo_country %T>%
+  write_json(
+    "data/clean_data/demo_country_clean.json"
+  )
+```
+
+```{r demo-region-clean}
+demo_region <- replaceSpacesWithUnderscores(demo_region)
+names(demo_region) <- tolower(names(demo_region))
+demo_region_clean <- demo_region %>%
+  mutate(
+    region = str_replace(
+      .$region,
+      "\\(not set\\)",
+      "Unknown"
+    )
+  ) %T>%
+  write_json(
+    "data/clean_data/demo_region_clean.json"
+  )
+```
+
+### Links
+
+```{r links-clean}
+links_clean <- replaceSpacesWithUnderscores(links)
+names(links_clean) <- tolower(names(links_clean))
+```
+
+```{r links-email-clean}
+links_email_clean <- links_clean %>%
+  filter(
+    str_detect(
+      link_url,
+      "mailto:"
+    )
+  ) %>%
+  filter(
+    !str_detect(
+      link_url,
+      "mailto:contact@threatened.org.au"
+    )
+  ) %>%
+  mutate(
+    link_url_clean = word(
+      link_url, 1, 1,
+      sep = fixed("?")
+    )
+  ) %>%
+  mutate(
+    MP_email = str_replace(
+      link_url_clean,
+      "mailto:",
+      ""
+    )
+  ) %>%
+  select(MP_email, event_count) %>%
+  group_by(MP_email) %>%
+  summarise(
+    event_count = sum(event_count)
+  ) %T>%
+  write_json(
+    "data/clean_data/links_email_clean.json"
+  )
+```
+
+```{r links-domain-clean}
+links_domain_clean <- links_clean %>%
+  drop_na(link_domain) %>%
+  select(link_domain, link_url, event_count) %>%
+  group_by(link_domain) %>%
+  summarise(
+    event_count = sum(event_count)
+  ) %T>%
+  write_json(
+    "data/clean_data/links_domain_clean.json"
+  )
+```
 
 ## Feedback
 
 Cleaning the feedback data was pretty easy besides not being able to figure out why I couldn't convert the blankspaces to `NA`s. Felt like I tried everything, so I gave up. If I want to pick this back up, start with trying to extract the regex characters of the missing values as doing it the other way around wasn't working. A work around for the multiple choice questions was to set the levels for the factor and anything left over (the blanks) get converted to `NA`s.
 
-```{r}
+```{r feedback-clean}
 feedback_clean <- feedback %>%
   rename(
     submission_id = submissionid,
@@ -273,43 +390,8 @@ feedback_clean <- feedback %>%
     !submission_id %in% c(1:11, 47:49)
   ) %T>%
   write_json(
-    "output/clean_data/analytics_feedback/feedback_clean.json"
+    "data/clean_data/feedback_clean.json"
   )
-
-  # mutate(
-  #   across(
-  #     where(
-  #       is.character
-  #     ), ~na_if(., regex("[\S+]"))
-  #   )
-  # ) %>%
-  # replace_with_na(
-  #   replace = list(
-  #     actions_result = ""
-  #   )
-  # )
-  # mutate(
-  #   across(
-  #     where(
-  #       is.character
-  #     ), trimws
-  #   )
-  # )
-# complete(feedback_clean)
-#
-# feedback_clean$actions_result[feedback_clean$actions_result == " "] <- ""
-#
-# x <- c("apple", "  ", " ", "")
-# str_detect(x, "^[\t]")
-#
-#
-# feedback_clean[feedback_clean$actions_result == " "]
-#
-# str_replace()
-#
-#
-# apply(feedback_clean, c(1, 2), function(x) gsub("\\s", NA, x))
-
 ```
 
 After removing test submissions of the feedback form and some dodgy answers, we went from `r dim(feedback)[1]` to `r dim(feedback_clean)[1]`.
