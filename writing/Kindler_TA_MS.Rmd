@@ -281,8 +281,12 @@ vision and reassess design decisions. Once developed to a functional
 stage, the team held content and functionality testing workshops with
 three eNGOs (WWF, BirdLife, ACF) and a design workshop with experts from
 that field conducive to beta testing. Based on the feedback received,
-the app was re-designed to acommodate requests and advice. Alpha testing
-of the app did not occur.
+the app was re-designed to accommodate requests and advice. Alpha
+testing of the app did not occur.
+
+Once users have provided their postcode, the application connects them
+to the "set" of species within the associated CED. The first species
+they are provided with is randomised, and the next, and so forth.
 
 Sharing of the app functions.
 
@@ -364,6 +368,7 @@ library(ozmaps)
 library(mapdata)
 library(maps)
 library(tmap)
+library(rmapshaper)
 ```
 
 ```{r import}
@@ -372,6 +377,9 @@ engag_title <- fromJSON(
 )
 species_title <- fromJSON(
   "data/clean_data/species_title_clean.json"
+)
+help_title <- fromJSON(
+  "data/clean_data/help_title_clean.json"
 )
 acquis_time <- fromJSON(
   "data/clean_data/acquis_time_clean.json"
@@ -409,6 +417,14 @@ media <- fromJSON(
   mutate(
     published_date_time_AEST = ymd_hms(published_date_time_AEST)
   )
+elects <- st_read(
+  "data/clean_data/elect_clean.gpkg"
+) %>% 
+  ms_simplify(.,
+  keep = 0.01,
+  keep_shape = TRUE
+) %>%
+  st_make_valid()
 ```
 
 ### Para 1 - Description of users and timing
@@ -487,19 +503,125 @@ patterns
 **Figure 3. A map of Australia with hits.** - How do the locations our
 users come from differentiate?
 
+A)  Could do one chart of sum species page view per electorate then B)
+    sum how to help page per electorate
+
 ```{r, fig_caption="Figure 3. A map of Australia with hits on a per city basis"}
+species_title_geom <- elects %>% 
+  full_join(., species_title) %>% 
+  group_by(electorate, state_territory, state_territory_abbrev, demographic_class) %>% 
+  summarise(
+    active_users = sum(active_users),
+    engaged_sessions = sum(engaged_sessions),
+    event_count = sum(event_count)
+  )
+
+# TODO: started the dorl 
+species_title_geom_dorl_weight <- species_title_geom %>%
+  st_transform(
+    3112
+  ) %>%
+  cartogram_dorling(
+    weight = "event_count",
+    k = 0.3
+    # m_weight = 1
+  )
+
+tm_shape(species_title_geom) +
+  tm_polygons() +
+  tm_bubbles(size = "event_count")
+# going per polygon? LOL
+
+help_title_geom <- elects %>% 
+  full_join(., help_title)
+tm_shape(elects) +
+  tm_polygons() +
+  tm_shape(help_title_geom) +
+  tm_bubbles(size = "event_count")
+# but not here??
+
+
+spec.per.elect.unique.dorl.weight <- spec.per.elect.counts.summary %>%
+  st_transform(
+    3112
+  ) %>%
+  cartogram_dorling(
+    weight = "total_unique_species",
+    k = 0.3
+    # m_weight = 1
+  )
+
+#### tmap ####
+
+spec.per.elect.unique.spec.dorl <-
+tm_shape(
+  elect,
+  bbox = st_bbox(c(
+    xmin = 112.929704,
+    ymin = -43.627943,
+    xmax = 155.629864,
+    ymax = -9.115517
+    )
+  )
+  ) +
+  tm_borders(
+    "white",
+    lwd = 1
+  ) +
+  tm_fill(
+    "#d8d8d8"
+  ) +
+  tm_shape(
+    spec.per.elect.unique.dorl.weight,
+    bbox = st_bbox(c(
+      xmin = 112.929704,
+      ymin = -43.627943,
+      xmax = 155.629864,
+      ymax = -9.115517
+    )
+  )
+  ) +
+  tm_fill(
+    "total_unique_species",
+    style = "jenks",
+    # style = "cont",
+    title = "Threatened species",
+    palette = "-inferno"
+  ) +
+  tm_text(
+    "electorate_abbrev",
+    size = "AREA"
+  ) +
+  tm_borders(
+    alpha = 0.6
+  ) +
+  # tm_legend(
+    # legend.position = c("left", "top")
+    # title.position = c("left", "bottom")
+  # ) +
+  # tm_compass(position = c("left", "bottom")) +
+  # tm_scale_bar(
+  #   position = c("left", "bottom"),
+  #   width = 0.2
+  # ) +
+  tm_layout(
+    frame = FALSE,
+    # legend.width = 1,
+    # legend.height = 0.8,
+    # legend.title.size = 1.5
+    # legend.outside = TRUE
+  )
+
+
 aus <- ozmap(x = "country")
 demo_city_geom_clean <- demo_city_geom_clean %>% 
   filter(!city == "Unknown")
-
 # TODO: stuck on contours, maybe need to rasterise?
-
 # tmap option
 tm_shape(aus) +
   tm_polygons() +
   tm_shape(demo_city_geom_clean) +
   tm_bubbles(size = "active_users")
-
 # ggplot option
 ggplot(aus) +
   geom_sf() +
@@ -551,6 +673,8 @@ interviews conducted on local stations around the country. The appetite
 seemed there.
 
 ### Para 2 - How to do it more robustly
+
+"here is what kind of scientific impact can be achieved on a small budget, here is how you can learn from our approach"
 
 JW: This is a first attempt and done via just two rounds of review by
 NGOS. A more systematic way of doing this would be Y, X, and Z (use the
