@@ -319,7 +319,7 @@ something else, (4) demographics. Survey data came from a form
 positioned in the header of the web app (Fig X) and was comprised of
 four free-text answers and two likert [?] scale questions. We filtered
 out the free-text questions (not enough volume, and kinda random
-responses, Supplemetnary Material S\* [for full table of Q/A]), and
+responses, Supplementary Material S\* [for full table of Q/A]), and
 present the quantitative answers to the following questions: Q1 "Are you
 going to take any actions as a result of using the web app?"; Q2 "The
 information on this website was easy to understand:".
@@ -329,7 +329,7 @@ conversation article data
 
 ### Para 4 - Data processing and analysis
 
-How app usage data was extracted.
+Google Analytics data was subset to be between the 2022/05/02 and 2022/06/14.
 
 Descriptive statistics of usage etc were used to...
 
@@ -379,68 +379,52 @@ library(rmapshaper)
 ```
 
 ```{r import}
-engag_title <- fromJSON(
-  "data/clean_data/engag_title_clean.json"
-)
-species_title <- fromJSON(
-  "data/clean_data/species_title_clean.json"
-)
-species_title_av_clean <- fromJSON(
-  "data/clean_data/species_title_av_time_clean.json"
-)
-help_title <- fromJSON(
-  "data/clean_data/help_title_clean.json"
-)
-acquis_time <- fromJSON(
-  "data/clean_data/acquis_time_clean.json"
-) %>%
-  mutate(
-    date = as.Date(date)
-  )
-acquis_traffic <- fromJSON(
-  "data/clean_data/acquis_traffic_clean.json"
-)
-demo_country <- fromJSON(
-  "data/clean_data/demo_country_clean.json"
-)
-demo_region <- fromJSON(
-  "data/clean_data/demo_region_clean.json"
-)
-demo_city_geom_clean <- st_read(
-  "data/clean_data/demo_city_geom_clean.gpkg"
-)
-links_domain <- fromJSON(
-  "data/clean_data/links_domain_clean.json"
-)
-links_email <- fromJSON(
-  "data/clean_data/links_email_clean.json"
-)
-feedback <- fromJSON(
-  "data/clean_data/feedback_clean.json"
-)
-elects_demo <- fromJSON(
-  "data/clean_data/demo_clean.json"
-)
-media <- fromJSON(
-  "data/clean_data/media_clean.json"
-) %>%
-  mutate(
-    published_date_time_AEST = ymd_hms(published_date_time_AEST)
-  )
-species <- st_read(
-  "data/clean_data/species_clean.gpkg"
-)
-elects <- st_read(
-  "data/clean_data/elect_clean.gpkg"
-) %>% 
+engag_title <- fromJSON("data/clean_data/engag_title_clean.json")
+species_title <- fromJSON("data/clean_data/species_title_clean.json")
+species_title_av_clean <- fromJSON("data/clean_data/species_title_av_time_clean.json")
+help_title <- fromJSON("data/clean_data/help_title_clean.json")
+acquis_time <- fromJSON("data/clean_data/acquis_time_clean.json") %>%
+  mutate(date = as.Date(date))
+acquis_traffic <- fromJSON("data/clean_data/acquis_traffic_clean.json")
+demo_country <- fromJSON("data/clean_data/demo_country_clean.json")
+demo_region <- fromJSON("data/clean_data/demo_region_clean.json")
+demo_city_geom_clean <- st_read("data/clean_data/demo_city_geom_clean.gpkg")
+links_domain <- fromJSON("data/clean_data/links_domain_clean.json")
+links_email <- fromJSON("data/clean_data/links_email_clean.json")
+feedback <- fromJSON("data/clean_data/feedback_clean.json")
+elects_demo <- fromJSON("data/clean_data/demo_clean.json")
+media <- fromJSON("data/clean_data/media_clean.json") %>%
+  mutate(published_date_time_AEST = ymd_hms(published_date_time_AEST))
+species <- st_read("data/clean_data/species_clean.gpkg")
+elects <- st_read("data/clean_data/elect_clean.gpkg") %>%
   ms_simplify(.,
-  keep = 0.01,
-  keep_shape = TRUE
-) %>%
+              keep = 0.01,
+              keep_shape = TRUE) %>%
   st_make_valid()
 ```
 
 ### Para 1 - Description of users and timing
+
+```{r}
+acquis_time_sum <- acquis_time %>%
+  group_by(date) %>% 
+  summarise(sum = sum(across(where(is.numeric))))
+```
+
+```{r}
+acquis_time_source <- acquis_time %>%
+  # group_by(date) %>% 
+  summarise(across(where(is.numeric), sum)) %>% 
+  pivot_longer(everything(), names_to = "source", values_to = "total") %>% 
+  mutate(total_percent = total/sum(.$total)) %>% 
+  mutate(total_percent = round(total_percent*100)) %>% 
+  arrange(desc(total))
+```
+
+
+The TA web application was launched on the 3rd May 2022 ahead of the Australian federal election held on the 21st May 2022. Prior to election day, `r acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))` (`r acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise((sum = sum(sum))/(acquis_time_sum %>% summarise(sum = sum(sum)))*100) %>% round()`%) users visited the web app (Figure \ref(fig:user-time)). The largest acquisition source of users were from `r acquis_time_source %>% select(source) %>% slice(1)` input of the TA URL into a web browser application (`r acquis_time_source %>% select(total) %>% slice(1)`, `r acquis_time_source %>% select(total_percent) %>% slice(1)`%). The Australian Broadcasting Corporation accounted for `r acquis_time_source %>% select(total) %>% slice(2)` (`r acquis_time_source %>% select(total_percent) %>% slice(2)`%) users, followed by The Conversation with `r acquis_time_source %>% select(total) %>% slice(3)` (`r acquis_time_source %>% select(total_percent) %>% slice(3)`%), Google with `r acquis_time_source %>% select(total) %>% slice(4)` (`r acquis_time_source %>% select(total_percent) %>% slice(4)`%), and Facebook `r acquis_time_source %>% select(total) %>% slice(5)` (`r acquis_time_source %>% select(total_percent) %>% slice(5)`%). 
+
+six sources: direct (), ABC (abc.net.au), The Conversation (theconversation.com), google (google.com), and Facebook (facebook.com), 
 
 Released XXX. #% of users prior to election day. Over the course of X
 days up to federal election, \# Number of people and hits over time
@@ -450,35 +434,21 @@ days up to federal election, \# Number of people and hits over time
 did our traffic acquisition change over time, drawn next to key media
 events?
 
-```{r, fig.width=20, fig.height=20, fig.cap="Figure 2. a time series of usage, including key media events."}
+```{r users-time, fig.cap="Figure 2. a time series of usage, including key media events."}
 # TODO: add in key media events, maybe by joining the two datasets, or manual add-in as per Chang 2018
 acquis_time %>%
-  select(
-    !where(
-      ~ is.numeric(.) &&
-        sum(.) <= 200
-    )
-  ) %>%
-  pivot_longer(
-    cols = -date,
-  ) %>%
-  rename(
-    session_source = name,
-    users = value
-  ) %>%
-  filter(
-    between(
-      date,
-      as.Date("2022-05-02"),
-      as.Date("2022-05-30")
-    )
-  ) %>%
+  select(!where(~ is.numeric(.) &&
+                  sum(.) <= 200)) %>%
+  pivot_longer(cols = -date,) %>%
+  rename(session_source = name,
+         users = value) %>%
+  filter(between(date,
+                 as.Date("2022-05-02"),
+                 as.Date("2022-05-30"))) %>%
   ggplot(.) +
-  aes(
-    x = date,
-    y = users,
-    fill = session_source
-  ) +
+  aes(x = date,
+      y = users,
+      fill = session_source) +
   geom_area() +
   # geom_text(
   #   data = media,
@@ -488,23 +458,63 @@ acquis_time %>%
   #     y = 0
   #     )
   #   ) +
-  scale_fill_viridis(
-    option = "H",
-    discrete = TRUE
-  ) +
+  scale_fill_viridis(option = "H",
+                     discrete = TRUE) +
   ylim(0, 5400) +
   theme_minimal() +
-  labs(
-    x = NULL,
-    y = "Number of users",
-    fill = "Acquisition"
+  labs(x = NULL,
+       y = "Number of users",
+       fill = "Acquisition") +
+  annotate(
+    "segment",
+    x = as.Date("2022-05-03"),
+    xend = as.Date("2022-05-03"),
+    y = 2500,
+    yend = 2700
   ) +
-  annotate("segment", x = as.Date("2022-05-03"), xend = as.Date("2022-05-04"), y = 2500, yend = 2700) + 
-  annotate("text", x = as.Date("2022-05-05"), y = 2850, label = "The Conversation", size = 2.5) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-05"),
+    y = 2850,
+    label = "The Conversation",
+    size = 2.5
+  ) +
   # annotate("segment", x = as.Date("2022-05-15"), xend = as.Date("2022-05-15"), y = 5150, yend = 5300) +
-  annotate("text", x = as.Date("2022-05-15"), y = 5300, label = "ABC Science", size = 2.5) +
-  annotate("segment", x = as.Date("2022-05-24"), xend = as.Date("2022-05-24"), y = 500, yend = 750) + 
-  annotate("text", x = as.Date("2022-05-24"), y = 900, label = "Behind the News", size = 2.5)
+  annotate(
+    "text",
+    x = as.Date("2022-05-15"),
+    y = 5300,
+    label = "ABC Science",
+    size = 2.5
+  ) +
+  annotate(
+    "segment",
+    x = as.Date("2022-05-24"),
+    xend = as.Date("2022-05-24"),
+    y = 500,
+    yend = 750
+  ) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-25"),
+    y = 900,
+    label = "Behind the News",
+    size = 2.5
+  ) +
+  annotate(
+    "segment",
+    x = as.Date("2022-05-21"),
+    xend = as.Date("2022-05-21"),
+    y = 300,
+    yend = 1150
+  ) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-21"),
+    y = 1300,
+    label = "Election day",
+    size = 2.5
+  )
   
 ```
 
@@ -519,20 +529,19 @@ species_title_geom <- elects %>%
     engaged_sessions = sum(engaged_sessions),
     event_count = sum(event_count)
   ) %>% 
+  ungroup() %>% 
   st_union(by_feature = TRUE)
 species_title_summary <- species_title_geom %>% 
   st_set_geometry(NULL)
 ```
 
+An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. As species were grouped by division, the CED with the most aggregated events on each species was `r species_title_summary %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r species_title_summary %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`) with `r species_title_summary %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)). In comparison, the CED with the least number of events was `r species_title_summary %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r species_title_summary %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r species_title_summary %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)).
 
-The CED with the most events on species found within was `r species_title_summary[order(species_title_summary$event_count, decreasing = TRUE),]['electorate'][1,]` (`r species_title_summary[order(species_title_summary$event_count, decreasing = TRUE),]['state_territory_abbrev'][1,]`) with `r species_title_summary[order(species_title_summary$event_count, decreasing = TRUE),]['event_count'][1,]`. In comparison, the CED with the least number of events was `r species_title_summary[order(species_title_summary$event_count, decreasing = FALSE),]['electorate'][1,]` (`r species_title_summary[order(species_title_summary$event_count, decreasing = FALSE),]['state_territory_abbrev'][1,]`) with `r species_title_summary[order(species_title_summary$event_count, decreasing = FALSE),]['event_count'][1,]`
-
-Number of electorates and density of hits across space. Describe
-patterns
+- What are the patterns of interest across space?
 
 Australian CEDs contain an average of X people. You can see here that it is not an even distribution of our users.
 
-```{r, fig.cap="Figure 3. Choropleth map of Australian Commonwealth Electoral Divisions (CEDs) and the aggregate number of events recorded on the species profile pages."}
+```{r CED-events, fig.cap="Figure 3. Choropleth map of Australian Commonwealth Electoral Divisions (CEDs) and the aggregate number of events recorded on the species profile pages."}
 # I tried to do by city but this was unsuccessful as it didn't capture a lot, it kinda makes sense to do it via how we structured the app
 # Two options:
 # A) Could do one chart of sum species page view per electorate then 
@@ -561,6 +570,15 @@ tm_shape(species_title_geom,
     "electorate",
     size = "AREA"
   ) +
+  tm_compass(
+    # position = c(0.32, 0.02),
+    position = c("left", "bottom"),
+    size = 1.4
+  ) +
+  tm_scale_bar(
+    width = .2,
+    position = c("left", "bottom")
+  ) +
   tm_layout(
     frame = FALSE,
     # legend.width = .25,
@@ -571,8 +589,11 @@ tm_shape(species_title_geom,
   )
 ```
 
-There were X number of threatened animals. There were X number of threatened plants.
+There were X number of threatened animals. There were X number of threatened plants. Every animal species in every electorate received at least X views.
+
 Number of species investigated and most popular species were XXX.
+
+Every how to help page received atleast X views.
 
 ```{r, include = FALSE}
 # Background grey Australia
@@ -593,7 +614,13 @@ t <- tm_shape(aus,
   tm_polygons() +
   tm_layout(frame = FALSE) +
   tm_shape(select_species) +
-  tm_polygons("black", border.alpha = .4)
+  tm_polygons("black", border.alpha = .4) +
+  tm_compass(
+    position = c("left", "bottom"),
+    size = 1.2) +
+  tm_scale_bar(
+    position = c("left", "bottom"),
+    width = .2)
 tmap_save(t,
           "output/fig_species_engagement/species_engagement_base_map.svg")
 # edit in inkscape
