@@ -22,7 +22,6 @@ library(units)
 library(readxl)
 library(stringr)
 library(plotly)
-library(googleAnalyticsR)
 library(forcats)
 library(reactable)
 library(readODS)
@@ -52,14 +51,26 @@ We've got two sources of *data* that were produced by **Threatened Australians**
 engag_title_clean <- fromJSON(
     "data/clean_data/engag_title_clean.json"
   )
-acquis_source_clean <- fromJSON(
-    "data/clean_data/acquis_source_clean.json"
-  )
 acquis_time_clean <- fromJSON(
     "data/clean_data/acquis_time_clean.json"
   )
-acquis_users_clean <- fromJSON(
-    "data/clean_data/acquis_users_clean.json"
+acquis_traffic_clean <- fromJSON(
+    "data/clean_data/acquis_traffic_clean.json"
+  )
+demo_country_clean <- fromJSON(
+    "data/clean_data/demo_country_clean.json"
+  )
+demo_region_clean <- fromJSON(
+    "data/clean_data/demo_region_clean.json"
+  )
+demo_city_clean <- fromJSON(
+    "data/clean_data/demo_city_clean.json"
+  )
+links_domain_clean <- fromJSON(
+    "data/clean_data/links_domain_clean.json"
+  )
+links_email_clean <- fromJSON(
+    "data/clean_data/links_email_clean.json"
   )
 feedback_clean <- fromJSON(
     "data/clean_data/feedback_clean.json"

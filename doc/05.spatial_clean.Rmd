@@ -1,0 +1,54 @@
+---
+title: Spatial data clean<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: show
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(jsonlite)
+library(magrittr)
+library(units)
+```
+
+
+```{r}
+elect <- st_read("data/raw_data/AEC_electoral_boundaries_2019/COM_ELB_region.shp")
+```
+
+```{r}
+# The 'elect' file has a couple of contractions that do not match 'demo' file
+elect$Elect_div <- gsub("Eden-monaro", "Eden-Monaro", elect$Elect_div)
+elect$Elect_div <- gsub("Mcewen", "McEwen", elect$Elect_div)
+elect$Elect_div <- gsub("Mcmahon", "McMahon", elect$Elect_div)
+elect$Elect_div <- gsub("Mcpherson", "McPherson", elect$Elect_div)
+elect$Elect_div <- gsub("O'connor", "O'Connor", elect$Elect_div)
+elect <- elect %>%
+  select(
+    Elect_div, geometry
+  ) %>%
+  rename(
+    electorate = Elect_div
+  ) %>%
+  st_make_valid() %>%
+  st_crop(
+    xmin = 111.921114, ymin = -44.740510,
+    xmax = 154.638727, ymax = -8.115517
+    # remove the islands
+  ) %T>%
+  st_write(
+    dsn = "data/clean_data/elect_clean.gpkg",
+    layer = "elect_clean", append = FALSE, delete_dsn = TRUE
+  )
+```
+

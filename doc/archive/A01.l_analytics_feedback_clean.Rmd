@@ -30,6 +30,9 @@ library(naniar)
 library(viridis)
 library(ggridges)
 library(networkD3)
+library(maps)
+library(vroom)
+library(data.table)
 ```
 
 # Import data
@@ -62,6 +65,9 @@ Engagement report - pages and screens viewed by users. This includes the number 
 # )
 engag_title <- read_ods(
   "data/raw_data/TA_analytics/22-05-02_22-06-14_engagement_title.ods"
+)
+engag_title_av_time <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_engagement_page_title.ods"
 )
 ```
 
@@ -110,6 +116,14 @@ Export it by copy and pasting the data into a new spreadsheet.
 ```{r read-feedback}
 feedback <- read_ods(
   "data/raw_data/TA_feedback_output/21-to-22-06-16_feedback.ods"
+)
+```
+
+## Media appearances
+
+```{r}
+media <- read_ods(
+  "data/raw_data/media.ods"
 )
 ```
 
@@ -210,13 +224,6 @@ acquis_date_clean <- acquis_date %>%
   ) %>%
   select(
     !c(facebook2, facebook3, reddit2, abc2)
-  ) %>%
-  pivot_longer(
-    cols = -date,
-  ) %>%
-  rename(
-    session_source = name,
-    users = value
   ) %T>%
   write_json(
     "data/clean_data/acquis_time_clean.json"
@@ -266,6 +273,120 @@ engag_title_clean <- engag_title %>%
   )
 ```
 
+```{r, message = FALSE}
+species_title_clean <- engag_title_clean %>%
+  filter(
+    !str_detect(
+      page_title,
+      "Help|Survey|About|Resources|Browse|Choose|Home|Australians"
+    )
+  ) %>%
+  filter(
+    !grepl(
+      "^Large-eared Pied Bat$",
+      page_title
+    )
+  ) %>%
+  mutate(
+    vernacular_name = word(
+      page_title, 1, sep = fixed(" in ")
+    )
+  ) %>%
+  mutate(
+    electorate = word(
+      page_title, 2, sep = fixed(" in ")
+    )
+  ) %>%
+  full_join(demo_elects) %>%
+  select(
+    page_title, electorate, state_territory, state_territory_abbrev, demographic_class, vernacular_name, active_users, new_users, engaged_sessions, engagement_rate, engaged_sessions_per_user, event_count
+  ) %T>%
+  write_json(
+    "data/clean_data/species_title_clean.json"
+  )
+```
+
+```{r average engagement time}
+species_title_av_time_clean <-
+  replaceSpacesWithUnderscores(engag_title_av_time)
+names(species_title_av_time_clean) <-
+  tolower(names(species_title_av_time_clean))
+glimpse(species_title_av_time_clean)
+ggplot(species_title_av_time_clean) +
+  aes(x = average_engagement_time) +
+  geom_histogram(binwidth = 1)
+
+```
+
+```{r}
+species_title_av_time_clean <- species_title_av_time_clean %>%
+  rename(page_title = page_title_and_screen_class) %>%
+  select(page_title, average_engagement_time) %>%
+  mutate(page_title = str_remove_all(.$page_title,
+                                     coll(" - Threatened Australians"))) %>%
+  mutate(
+    page_title = str_replace(
+      .$page_title,
+      "Threatened Australians - find threatened species near you",
+      "Home"
+    )
+  ) %>%
+  filter(!str_detect(
+    page_title,
+    "絶滅の危機に瀕|https://www.threatened.o|wills|ausztrálok"
+  )) %>%
+  filter(
+    !str_detect(
+      page_title,
+      "Help|Survey|About|Resources|Browse|Choose|Home|Australians"
+    )
+  ) %>%
+  filter(!grepl("^Large-eared Pied Bat$",
+                page_title)) %>%
+  mutate(vernacular_name = word(page_title, 1, sep = fixed(" in "))) %>%
+  mutate(electorate = word(page_title, 2, sep = fixed(" in "))) %>%
+  full_join(demo_elects) %>%
+  group_by(vernacular_name) %>%
+  summarise(average_engagement_time = mean(average_engagement_time)) %>%
+  arrange(desc(average_engagement_time)) %>%
+  mutate(across(average_engagement_time,
+                signif,
+                digits = 3))
+# %T>%
+  write_json(
+    "data/clean_data/species_title_av_time_clean.json"
+  )
+```
+
+
+```{r message = FALSE}
+help_title <- engag_title_clean %>%
+  filter(
+    str_detect(
+      page_title,
+      "Help"
+    )
+  ) %>%
+  filter(
+    !str_detect(
+      page_title,
+      "wills"
+    )
+  ) %>%
+  mutate(
+    electorate = word(
+      page_title, 2, sep = fixed(" in ")
+    )
+  ) %>%
+  full_join(., demo_elects) %>%
+  relocate(
+    page_title, electorate, state_territory, state_territory_abbrev, demographic_class
+  ) %T>%
+  write_json(
+    "data/clean_data/help_title_clean.json"
+  )
+```
+
 ### Demographics
 
 ```{r demo-city-clean}
@@ -278,9 +399,56 @@ demo_city_clean <- demo_city %>%
       "\\(not set\\)",
       "Unknown"
     )
-  ) %T>%
-  write_json(
-    "data/clean_data/demo_city_clean.json"
+  )
+```
+
+```{r clean global cities data}
+world_cities_geom <- world.cities[world.cities$country.etc == "Australia",]
+world_cities_geom_clean <- world_cities_geom %>%
+  select(name, lat, long) %>%
+  rename(city = name) %>%
+  st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326")
+```
+
+```{r compare and ID empties}
+id_empty_cities <- demo_city_clean %>%
+  left_join(world_cities_geom_clean) %>%
+  st_as_sf(crs = "EPSG:4326")
+id_empty_cities <-  st_set_geometry(
+    id_empty_cities[st_is_empty(
+      id_empty_cities),1], NULL) %>%
+  filter(!city == "Unknown")
+```
+
+Take those and create a tribble.
+
+```{r fill empties with geoms}
+# TODO: These are not WGS84 geoms
+cities_empty_with_geom <- tribble(
+  ~city, ~lat, ~long,
+  'Bathurst', -33.41665, 149.5806,
+  'Burnie - Somerset', 41.0597, 145.8937,
+  'Central Coast', 33.2320, 151.2173,
+  'Drouin', -38.133333, 145.85,
+  'Kalgoorlie - Boulder', 30.7490, 121.4660,
+  'Kingston', 37.9819, 145.1045,
+  'Maitland', 32.7316, 151.5525,
+  'Moe - Newborough', 38.1775, 146.2594,
+  'Shepparton - Mooroopna', 36.3856, 145.4139
+) %>%
+  st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") %>%
+  as.data.frame()
+```
+
+```{r join}
+cities_geom_clean <- world_cities_geom_clean %>%
+  full_join(cities_empty_with_geom)
+demo_city_geom_clean <- demo_city_clean %>%
+  left_join(cities_geom_clean) %>%
+  st_as_sf(crs = "EPSG:4326") %T>%
+  st_write(
+    "data/clean_data/demo_city_geom_clean.gpkg",
+    layer = "demo_city_geom_clean", append = FALSE, delete_dsn = TRUE
   )
 ```
 
@@ -395,3 +563,13 @@ feedback_clean <- feedback %>%
 ```
 
 After removing test submissions of the feedback form and some dodgy answers, we went from `r dim(feedback)[1]` to `r dim(feedback_clean)[1]`.
+
+## Media
+
+```{r}
+media_clean <- media %T>%
+  write_json(
+    "data/clean_data/media_clean.json"
+  )
+```
+```

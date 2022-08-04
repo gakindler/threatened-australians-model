@@ -1,0 +1,160 @@
+---
+title: Cleaning of the analytics and feedback data<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: show
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r Libraries, message=FALSE}
+library(tidyverse)
+library(sf)
+library(magrittr)
+library(jsonlite)
+library(units)
+library(readxl)
+library(stringr)
+library(plotly)
+# library(RGoogleAnalytics)
+library(forcats)
+library(reactable)
+library(readODS)
+library(naniar)
+library(viridis)
+library(ggridges)
+library(networkD3)
+library(maps)
+library(vroom)
+library(data.table)
+```
+
+# Import data
+
+We've got two sources of *data* that were produced by **Threatened Australians**, the first of which is:
+
+## Analytics data
+
+Initially, I was importing this via the predetermined reports (`old` directory in `raw_data`). Then I started to use the *explore* tab on GA4, except this data came with awful messy-ness that wasn't easy to clean on import. Then I tried endlessly to use the API (failed miserably, I think because the Google overlords recently changed the process but was quite happy to provide awful and non-updated documentation on it). I then discovered GA4 only holds data for 2 months. I thus had to export all the data I needed. I gave in to manually changing the tables from the explore tab of GA4 for easier import as figuring out how to do it R was going to be educational but a nightmare (I hate myself). I made a copy of each downloaded file (`/raw_data/raw_downloaded`) and put the edited in the `raw_data` folder.
+
+
+Acquisition report - how we acquired traffic/users
+
+```{r read-acquisition}
+acquis_date <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_acquisition_date_source.ods"
+)
+
+acquis_traffic <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_acquisition_traffic_source.ods"
+)
+```
+
+## Misc
+
+Other data we are interested in attaching to the analytics and (possibly) the feedback data.
+
+```{r read-misc}
+# elects <- fromJSON(
+#   "output/clean_data/MP_info_clean.json"
+# )
+# file.copy(
+#     "/home/gareth/science/projects/electoral/threatened_australians/output/clean_data/demo_clean.json",
+#     "/home/gareth/science/projects/electoral/threatened_australians_research/data/clean_data/demo_clean.json"
+#     )
+demo_elects <- fromJSON(
+    "data/clean_data/demo_clean.json"
+)
+```
+
+# Clean
+
+## Analytics
+
+Everything that is needed to clean the analytics data is represented pretty clearly in the code, so I won't elaborate.
+
+```{r functions}
+replacePeriodsWithScores <- function(x){
+  colnames(x) <- gsub(
+    "\\.",
+    "\\_",
+    colnames(x)
+  ); x
+}
+replaceSpacesWithUnderscores <- function(x){
+  colnames(x) <- gsub(
+    "\\s",
+    "\\_",
+    colnames(x)
+  ); x
+}
+```
+
+### Acquisition
+
+```{r acquisition-traffic-clean}
+acquis_traffic <- replaceSpacesWithUnderscores(acquis_traffic)
+names(acquis_traffic) <- tolower(names(acquis_traffic))
+acquis_traffic_clean <- acquis_traffic %>%
+  mutate(
+    active_users = as.integer(active_users)
+  ) %>%
+  mutate(
+    first_user_source = str_replace(
+      .$first_user_source,
+      "(direct)",
+      "direct"
+    )
+  ) %T>%
+  write_json(
+    "data/clean_data/acquis_traffic_clean.json"
+  )
+```
+
+```{r acquisition-date-clean}
+acquis_date <- replacePeriodsWithScores(acquis_date)
+names(acquis_date) <- tolower(names(acquis_date))
+acquis_date_clean <- acquis_date %>%
+  rename(
+    date = `session source`,
+    direct = `(direct)`,
+    abc = abc_net_au,
+    theconversation = theconversation_com,
+    facebook = m_facebook_com,
+    uq = uq_edu_au,
+    facebook2 = lm_facebook_com,
+    facebook3 = l_facebook_com,
+    twitter = t_co,
+    reddit = out_reddit_com,
+    reddit2 = reddit_com,
+    bing = bing,
+    google_classroom = classroom_google_com,
+    instagram = l_instagram_com,
+    linkedin = linkedin_com,
+    themandarin = themandarin_com_au,
+    we_are_explorers = weareexplorers_co,
+    abc2 = `amp-abc-net-au_cdn_ampproject_org`,
+    google_docs = docs_google_com,
+    bushwalk_updates = `bushwalk updates`
+  ) %>%
+  mutate(
+    date = as.Date(as.character(date), "%Y%m%d")
+  ) %>%
+  mutate(
+    facebook = facebook + facebook2 + facebook3,
+    reddit = reddit + reddit2,
+    abc = abc + abc2
+  ) %>%
+  select(
+    !c(facebook2, facebook3, reddit2, abc2)
+  ) %T>%
+  write_json(
+    "data/clean_data/acquis_time_clean.json"
+  )
+```

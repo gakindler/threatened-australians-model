@@ -1,0 +1,247 @@
+---
+title: Cleaning of the analytics and feedback data<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: show
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r Libraries, message=FALSE}
+library(tidyverse)
+library(sf)
+library(magrittr)
+library(jsonlite)
+library(units)
+library(readxl)
+library(stringr)
+library(plotly)
+# library(RGoogleAnalytics)
+library(forcats)
+library(reactable)
+library(readODS)
+library(naniar)
+library(viridis)
+library(ggridges)
+library(networkD3)
+library(maps)
+library(vroom)
+library(data.table)
+```
+
+# Import data
+
+We've got two sources of *data* that were produced by **Threatened Australians**, the first of which is:
+
+## Analytics data
+
+Initially, I was importing this via the predetermined reports (`old` directory in `raw_data`). Then I started to use the *explore* tab on GA4, except this data came with awful messy-ness that wasn't easy to clean on import. Then I tried endlessly to use the API (failed miserably, I think because the Google overlords recently changed the process but was quite happy to provide awful and non-updated documentation on it). I then discovered GA4 only holds data for 2 months. I thus had to export all the data I needed. I gave in to manually changing the tables from the explore tab of GA4 for easier import as figuring out how to do it R was going to be educational but a nightmare (I hate myself). I made a copy of each downloaded file (`/raw_data/raw_downloaded`) and put the edited in the `raw_data` folder.
+
+Technology report - device type people used
+
+There is other information in this report such as dated info.
+
+```{r read-technology}
+tech <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_tech_device_category.ods"
+)
+```
+
+Links - This is the event counts from the links that were clicked on
+
+Due to GA4 holding the data for two months, and my ignorance of this, the links data starts on the 4th of May as opposed to the 2nd of May, like with the other datasets.
+
+```{r read-links}
+links <- read_ods(
+  "data/raw_data/TA_analytics/22-05-04_22-06-14_links_au_only.ods"
+)
+```
+
+## Misc
+
+Other data we are interested in attaching to the analytics and (possibly) the feedback data.
+
+```{r read-misc}
+# elects <- fromJSON(
+#   "output/clean_data/MP_info_clean.json"
+# )
+# file.copy(
+#     "/home/gareth/science/projects/electoral/threatened_australians/output/clean_data/demo_clean.json",
+#     "/home/gareth/science/projects/electoral/threatened_australians_research/data/clean_data/demo_clean.json"
+#     )
+demo_elects <- fromJSON(
+    "data/clean_data/demo_clean.json"
+)
+```
+
+# Clean
+
+```{r functions}
+replacePeriodsWithScores <- function(x){
+  colnames(x) <- gsub(
+    "\\.",
+    "\\_",
+    colnames(x)
+  ); x
+}
+replaceSpacesWithUnderscores <- function(x){
+  colnames(x) <- gsub(
+    "\\s",
+    "\\_",
+    colnames(x)
+  ); x
+}
+```
+
+### Demographics
+
+```{r demo-city-clean}
+demo_city <- replaceSpacesWithUnderscores(demo_city)
+names(demo_city) <- tolower(names(demo_city))
+demo_city_clean <- demo_city %>%
+  mutate(
+    city = str_replace(
+      .$city,
+      "\\(not set\\)",
+      "Unknown"
+    )
+  )
+```
+
+```{r clean global cities data}
+world_cities_geom <- world.cities[world.cities$country.etc == "Australia",]
+world_cities_geom_clean <- world_cities_geom %>%
+  select(name, lat, long) %>%
+  rename(city = name) %>%
+  st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326")
+```
+
+```{r compare and ID empties}
+id_empty_cities <- demo_city_clean %>%
+  left_join(world_cities_geom_clean) %>%
+  st_as_sf(crs = "EPSG:4326")
+id_empty_cities <-  st_set_geometry(
+    id_empty_cities[st_is_empty(
+      id_empty_cities),1], NULL) %>%
+  filter(!city == "Unknown")
+```
+
+Take those and create a tribble.
+
+```{r fill empties with geoms}
+# TODO: These are not WGS84 geoms
+cities_empty_with_geom <- tribble(
+  ~city, ~lat, ~long,
+  'Bathurst', -33.41665, 149.5806,
+  'Burnie - Somerset', 41.0597, 145.8937,
+  'Central Coast', 33.2320, 151.2173,
+  'Drouin', -38.133333, 145.85,
+  'Kalgoorlie - Boulder', 30.7490, 121.4660,
+  'Kingston', 37.9819, 145.1045,
+  'Maitland', 32.7316, 151.5525,
+  'Moe - Newborough', 38.1775, 146.2594,
+  'Shepparton - Mooroopna', 36.3856, 145.4139
+) %>%
+  st_as_sf(coords = c("long", "lat"), crs = "EPSG:4326") %>%
+  as.data.frame()
+```
+
+```{r join}
+cities_geom_clean <- world_cities_geom_clean %>%
+  full_join(cities_empty_with_geom)
+demo_city_geom_clean <- demo_city_clean %>%
+  left_join(cities_geom_clean) %>%
+  st_as_sf(crs = "EPSG:4326") %T>%
+  st_write(
+    "data/clean_data/demo_city_geom_clean.gpkg",
+    layer = "demo_city_geom_clean", append = FALSE, delete_dsn = TRUE
+  )
+```
+
+```{r demo-country-clean}
+demo_country <- replaceSpacesWithUnderscores(demo_country)
+names(demo_country) <- tolower(names(demo_country))
+demo_country_clean <- demo_country %T>%
+  write_json(
+    "data/clean_data/demo_country_clean.json"
+  )
+```
+
+```{r demo-region-clean}
+demo_region <- replaceSpacesWithUnderscores(demo_region)
+names(demo_region) <- tolower(names(demo_region))
+demo_region_clean <- demo_region %>%
+  mutate(
+    region = str_replace(
+      .$region,
+      "\\(not set\\)",
+      "Unknown"
+    )
+  ) %T>%
+  write_json(
+    "data/clean_data/demo_region_clean.json"
+  )
+```
+
+### Links
+
+```{r links-clean}
+links_clean <- replaceSpacesWithUnderscores(links)
+names(links_clean) <- tolower(names(links_clean))
+```
+
+```{r links-email-clean}
+links_email_clean <- links_clean %>%
+  filter(
+    str_detect(
+      link_url,
+      "mailto:"
+    )
+  ) %>%
+  filter(
+    !str_detect(
+      link_url,
+      "mailto:contact@threatened.org.au"
+    )
+  ) %>%
+  mutate(
+    link_url_clean = word(
+      link_url, 1, 1,
+      sep = fixed("?")
+    )
+  ) %>%
+  mutate(
+    MP_email = str_replace(
+      link_url_clean,
+      "mailto:",
+      ""
+    )
+  ) %>%
+  select(MP_email, event_count) %>%
+  group_by(MP_email) %>%
+  summarise(
+    event_count = sum(event_count)
+  ) %T>%
+  write_json(
+    "data/clean_data/links_email_clean.json"
+  )
+```
+
+```{r links-domain-clean}
+links_domain_clean <- links_clean %>%
+  drop_na(link_domain) %>%
+  select(link_domain, link_url, event_count) %>%
+  group_by(link_domain) %>%
+  summarise(
+    event_count = sum(event_count)
+  ) %T>%
+  write_json(
+    "data/clean_data/links_domain_clean.json"
+  )
+```

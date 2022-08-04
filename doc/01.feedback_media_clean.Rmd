@@ -1,0 +1,100 @@
+---
+title: Cleaning of the analytics and feedback data<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: show
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r Libraries, message=FALSE}
+library(tidyverse)
+library(sf)
+library(magrittr)
+library(jsonlite)
+library(units)
+library(readxl)
+library(stringr)
+library(plotly)
+# library(RGoogleAnalytics)
+library(forcats)
+library(reactable)
+library(readODS)
+library(naniar)
+library(viridis)
+library(ggridges)
+library(networkD3)
+library(maps)
+library(vroom)
+library(data.table)
+```
+
+# Import data
+
+## Feedback
+
+The other type of data is feedback data - this is a single data frame with the answers to the feedback survey
+
+Export it by copy and pasting the data into a new spreadsheet.
+
+```{r read-feedback}
+feedback <- read_ods(
+  "data/raw_data/TA_feedback_output/21-to-22-06-16_feedback.ods"
+)
+```
+
+## Media appearances
+
+```{r}
+media <- read_ods(
+  "data/raw_data/media.ods"
+)
+```
+
+# Clean
+
+## Feedback
+
+Cleaning the feedback data was pretty easy besides not being able to figure out why I couldn't convert the blankspaces to `NA`s. Felt like I tried everything, so I gave up. If I want to pick this back up, start with trying to extract the regex characters of the missing values as doing it the other way around wasn't working. A work around for the multiple choice questions was to set the levels for the factor and anything left over (the blanks) get converted to `NA`s.
+
+```{r feedback-clean}
+feedback_clean <- feedback %>%
+  rename(
+    submission_id = submissionid,
+    key_takeaway = answer1,
+    actions_result = answer2,
+    actions_be = answer3,
+    easy_to_understand = answer4,
+    improvments_suggestions = answer5,
+    anything_else = answer6
+  ) %>%
+  filter(
+    !str_detect(
+      key_takeaway,
+      "test|Test|выплат|готовы")
+  ) %>%
+  filter(
+    !submission_id %in% c(1:11, 47:49)
+  ) %T>%
+  write_json(
+    "data/clean_data/feedback_clean.json"
+  )
+```
+
+After removing test submissions of the feedback form and some dodgy answers, we went from `r dim(feedback)[1]` to `r dim(feedback_clean)[1]`.
+
+## Media
+
+```{r}
+media_clean <- media %T>%
+  write_json(
+    "data/clean_data/media_clean.json"
+  )
+```
+```

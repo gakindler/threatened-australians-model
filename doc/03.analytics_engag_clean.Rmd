@@ -1,0 +1,294 @@
+---
+title: Cleaning of the analytics and feedback data<br><h2>Threatened Australians (threatened.org.au)
+author: Gareth Kindler<br>The University of Queensland, Australia
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+    html_document:
+        code_folding: show
+---
+
+```{r setup, include=FALSE, fig.align='center', warning=FALSE, message=FALSE}
+# knitr::opts_chunk$set(echo = TRUE, comment = "#")
+# knitr::opts_knit$set(root.dir = "../")
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r Libraries, message=FALSE}
+library(tidyverse)
+library(sf)
+library(magrittr)
+library(jsonlite)
+library(units)
+library(readxl)
+library(stringr)
+library(plotly)
+# library(RGoogleAnalytics)
+library(forcats)
+library(reactable)
+library(readODS)
+library(naniar)
+library(viridis)
+library(ggridges)
+library(networkD3)
+library(maps)
+library(vroom)
+library(data.table)
+```
+
+# Import data
+
+We've got two sources of *data* that were produced by **Threatened Australians**, the first of which is:
+
+## Analytics
+
+Initially, I was importing this via the predetermined reports (`old` directory in `raw_data`). Then I started to use the *explore* tab on GA4, except this data came with awful messy-ness that wasn't easy to clean on import. Then I tried endlessly to use the API (failed miserably, I think because the Google overlords recently changed the process but was quite happy to provide awful and non-updated documentation on it). I then discovered GA4 only holds data for 2 months. I thus had to export all the data I needed. I gave in to manually changing the tables from the explore tab of GA4 for easier import as figuring out how to do it R was going to be educational but a nightmare (I hate myself). I made a copy of each downloaded file (`/raw_data/raw_downloaded`) and put the edited in the `raw_data` folder.
+
+Engagement report - pages and screens viewed by users. This includes the number of times a specific page was viewed, how many users, how many events (e.g. clicks, scrolls).
+
+```{r read-engagement}
+# path_report <- read.csv(
+#   "data/TA_analytics/22-05-02_22-06-14_page_path_report.csv",
+#   skip = 10020
+# )
+engag_title <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_engagement_title.ods"
+)
+engag_title_av_time <- read_ods(
+  "data/raw_data/TA_analytics/22-05-02_22-06-14_engagement_page_title.ods"
+)
+```
+
+## Misc
+
+Other data we are interested in attaching to the analytics and (possibly) the feedback data.
+
+```{r read-misc}
+# elects <- fromJSON(
+#   "output/clean_data/MP_info_clean.json"
+# )
+# file.copy(
+#     "/home/gareth/science/projects/electoral/threatened_australians/output/clean_data/demo_clean.json",
+#     "/home/gareth/science/projects/electoral/threatened_australians_research/data/clean_data/demo_clean.json"
+#     )
+demo_elects <- fromJSON(
+    "data/clean_data/demo_clean.json"
+)
+```
+
+# Clean
+
+```{r functions}
+replacePeriodsWithScores <- function(x){
+  colnames(x) <- gsub(
+    "\\.",
+    "\\_",
+    colnames(x)
+  ); x
+}
+replaceSpacesWithUnderscores <- function(x){
+  colnames(x) <- gsub(
+    "\\s",
+    "\\_",
+    colnames(x)
+  ); x
+}
+```
+
+## Engagement
+
+I chose to use the by title engagement report as opposed to the by path as it was simply cleaner and slightly more informative. Even if the page titles use the vernacular name of species, which isn't distinct like scientific name or their taxon ID.
+
+`engaged_sessions` is probably the most informative metric. Google defines as:
+
+> The number of sessions that lasted 10 seconds or longer, or had 1 or more conversion events or 2 or more page or screen views.
+
+For pages such as "choose your electorate" thi metric doesn't work but we are not interested in this page.
+
+For what all the columns mean, check [this](https://support.google.com/analytics/answer/9143382).
+
+```{r engag-title}
+engag_title <- replaceSpacesWithUnderscores(engag_title)
+names(engag_title) <- tolower(names(engag_title))
+engag_title_clean <- engag_title %>%
+  # select(
+  #   page_title, active_users, new_users, engaged_sessions, event_count
+  # ) %>%
+  mutate(
+    page_title = str_remove_all(
+        .$page_title,
+        coll(" - Threatened Australians")
+    )
+  ) %>%
+  mutate(
+    page_title = str_replace(
+      .$page_title,
+      "Threatened Australians - find threatened species near you",
+      "Home"
+    )
+  ) %>%
+  filter(
+    !str_detect(
+      page_title,
+      "絶滅の危機に瀕|https://www.threatened.o|wills|ausztrálok"
+    )
+  ) %T>%
+  write_json(
+    "data/clean_data/engag_title_clean.json"
+  )
+```
+
+### Species page
+
+```{r engag-species-title, message = FALSE}
+species_title_clean <- engag_title_clean %>%
+  filter(
+    !str_detect(
+      page_title,
+      "Help|Survey|About|Resources|Browse|Choose|Home|Australians"
+    )
+  ) %>%
+  filter(
+    !grepl(
+      "^Large-eared Pied Bat$",
+      page_title
+    )
+  ) %>%
+  mutate(
+    vernacular_name = word(
+      page_title, 1, sep = fixed(" in ")
+    )
+  ) %>%
+  mutate(
+    electorate = word(
+      page_title, 2, sep = fixed(" in ")
+    )
+  ) %>%
+  full_join(demo_elects) %>%
+  select(
+    page_title, electorate, state_territory, state_territory_abbrev, demographic_class, vernacular_name, active_users, new_users, engaged_sessions, engagement_rate, engaged_sessions_per_user, event_count
+  ) %T>%
+  write_json(
+    "data/clean_data/species_title_clean.json"
+  )
+```
+
+I want to know what the engagement differences between species. This could be measured a couple of ways such as time users spent on the profiles on each species or the number of events that occurred on each profile.
+
+Complicating elements:
+
+- Not all species distribute evenly across Australia/electorates, therefore certain species are going to 'shown' more often than others
+
+```{r engag-title-time}
+species_title_av_time_clean <-
+  replaceSpacesWithUnderscores(engag_title_av_time)
+names(species_title_av_time_clean) <-
+  tolower(names(species_title_av_time_clean))
+
+summary(species_title_av_time_clean)
+IQR(species_title_av_time_clean$average_engagement_time)
+
+ggplot(species_title_av_time_clean) +
+  aes(x = average_engagement_time) +
+  geom_histogram(binwidth = 1)
+
+```
+
+It is clear that there are large outliers. Options:
+
+- I could trim these out
+- I could normalise/transform all data on the basis of how often each species was shown
+
+```{r select-av-engag-time}
+species_title_av_time_clean <- species_title_av_time_clean %>%
+  rename(page_title = page_title_and_screen_class) %>%
+  # select(page_title, average_engagement_time) %>%
+  mutate(page_title = str_remove_all(.$page_title,
+                                     coll(" - Threatened Australians"))) %>%
+  mutate(
+    page_title = str_replace(
+      .$page_title,
+      "Threatened Australians - find threatened species near you",
+      "Home"
+    )
+  ) %>%
+  filter(!str_detect(
+    page_title,
+    "絶滅の危機に瀕|https://www.threatened.o|wills|ausztrálok"
+  )) %>%
+  filter(
+    !str_detect(
+      page_title,
+      "Help|Survey|About|Resources|Browse|Choose|Home|Australians"
+    )
+  ) %>%
+  filter(!grepl("^Large-eared Pied Bat$",
+                page_title)) %>%
+  mutate(vernacular_name = word(page_title, 1, sep = fixed(" in "))) %>%
+  mutate(electorate = word(page_title, 2, sep = fixed(" in "))) %>%
+  full_join(demo_elects)
+```
+
+```{r}
+species_title_av_time_clean_trim <- species_title_av_time_clean %>%
+  filter(average_engagement_time <= 50) %>% 
+  group_by(vernacular_name) %>%
+  summarise(average_engagement_time = mean(average_engagement_time)) %>%
+  arrange(desc(average_engagement_time)) %>%
+  mutate(across(average_engagement_time,
+                signif,
+                digits = 3))
+```
+
+
+```{r}
+species_title_av_time_clean <- species_title_av_time_clean %>%
+  group_by(vernacular_name) %>%
+  summarise(average_engagement_time = mean(average_engagement_time)) %>%
+  arrange(desc(average_engagement_time)) %>%
+  mutate(across(average_engagement_time,
+                signif,
+                digits = 3)) %T>%
+  write_json(
+    "data/clean_data/species_title_av_time_clean.json"
+  )
+```
+
+What is causing some of those higher engaged species?
+
+```{r}
+glimpse(species_title_av_time_clean)
+exp <- species_title_av_time_clean %>% 
+  filter(vernacular_name == "Helmeted Honeyeater")
+```
+
+It seems that even the species that have outlier `average_engagement_time`s the other measurements of active users are decent enough (?). I think for first draft we are fine to continue with current model.
+
+### Help page
+
+```{r message = FALSE}
+help_title <- engag_title_clean %>%
+  filter(
+    str_detect(
+      page_title,
+      "Help"
+    )
+  ) %>%
+  filter(
+    !str_detect(
+      page_title,
+      "wills"
+    )
+  ) %>%
+  mutate(
+    electorate = word(
+      page_title, 2, sep = fixed(" in ")
+    )
+  ) %>%
+  full_join(., demo_elects) %>%
+  relocate(
+    page_title, electorate, state_territory, state_territory_abbrev, demographic_class
+  ) %T>%
+  write_json(
+    "data/clean_data/help_title_clean.json"
+  )
+```
