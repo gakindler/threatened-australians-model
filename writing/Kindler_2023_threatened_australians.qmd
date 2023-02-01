@@ -1,0 +1,473 @@
+---
+title: "A model for catalysing conservation knowledge and action through a digital platform"
+format:
+  docx:
+    reference-doc: /home/gareth/science/admin/bibliography/word_templates/research_article_template.docx
+author:
+  - name: Gareth S. Kindler
+    affiliations:
+      - ref: CBCS
+      - ref: SEES
+    email: g.kindler\@uq.edu.au
+  - name: Nick Kelly
+    affiliations:
+      - ref: media
+  - name: Tim Carden
+    affiliations:
+      - ref: media
+  - name: James E.M. Watson
+    affiliations:
+      - ref: CBCS
+      - ref: SEES
+affiliations:
+  - id: CBCS
+    name: Centre for Biodiversity and Conservation Science, The University of Queensland
+    city: Brisbane
+    state: Queensland
+    postal-code: 4072
+  - id: SEES
+    name: School of Earth and Environmental Sciences, The University of Queensland
+    city: Brisbane
+    state: Queensland
+    postal-code: 4072
+  - id: media
+    name: School of Design, Queensland University of Technology
+    city: Brisbane
+    state: Queensland
+    postal-code: 4059
+abstract: |
+  Government action for species conservation is dependent upon public support. Whilst scientists, NGOs, and government have developed tools that improve accessibility, they fall short of engaging the broader public. Here we discuss the Threatened Australians (TA) web app, which uses existing data to tell the story of threatened species occurrence within government constituency boundaries, as an attempt to facilitate public support and thus political action. By examining the development, launch, and maintenance, this helps inform/improve future efforts the conservation community make in engaging broader audiences.
+keywords:
+  - threatened species
+  - digital technology
+  - conservation science
+  - design
+bibliography: ../my_lib.bib
+execute:
+  echo: false
+  warning: false
+---
+
+  <!-- pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    fig-pos: 'h' -->
+
+<!-- format:
+  plos-pdf:
+    number-sections: false
+    journal:
+      id: plosone
+    include-in-header:
+      text: |
+        % Remove comment for double spacing
+        % \usepackage{setspace}
+        % \doublespacing -->
+
+<!-- Still can't get the bib to work. Getting "white space in argument of \bibdata" error in the .aux file -->
+
+```{r libraries, include=FALSE}
+library(pacman)
+pacman::p_load(tidyverse, sf, magrittr, jsonlite, units, readxl, stringr, plotly, forcats, reactable, readODS, naniar, viridis, ggridges, networkD3, httpgd, lubridate, oz, ozmaps, mapdata, maps, tmap, rmapshaper, here, png)
+```
+
+```{r, include=FALSE}
+here::here()
+here::i_am("writing/Kindler_2023_threatened_australians.qmd")
+```
+
+# Publishing
+
+Target journals (in order of preference):
+
+1. Ecology and Society [(IMRAD style)](https://ecologyandsociety.org/submissions/)
+2. Conservation Biology [(Essay, Contributed Paper, or Research Note)](https://conbio.onlinelibrary.wiley.com/hub/journal/15231739/homepage/forauthors.html)
+3. Conservation Letters [(Perspective or Letter)](https://conbio.onlinelibrary.wiley.com/hub/journal/1755263x/homepage/forauthors.html)
+4. Journal of Environmental Media [(long-form (7000 words) and short-form (1000 words))](https://www.intellectbooks.com/journal-of-environmental-media)
+5. Conservation Science and Practice [(Research Note, Perspective)](https://conbio.onlinelibrary.wiley.com/hub/journal/25784854/homepage/author-guidelines)
+6. Frontiers in Ecology and Environment [(Research Communication)](https://esajournals.onlinelibrary.wiley.com/hub/journal/15409309/resources/author-guidelines-FEE)
+
+NB: UQ has a APC waiver with Wiley
+
+<!-- Potential reviewers:
+
+1. Ariadne Vromen
+2. Mitchell Whitelaw (maybe not this guy because we invited him to collab but never followed up :/) -->
+
+\newpage
+
+# Introduction
+
+## Public understanding is essential
+
+<!-- Biodiversity is declining at increasingly accelerated rates. While conservation science is just one of the tools to address this problem, it does not have a good track record of translating effort into widespread/transformative change [@evansReconceptualizingRoleScience2021]. Much previously exerted effort within conservation science has been dedicated to describing the state of biodiversity and species and proximate drivers of change [@williamsFutureRoleConservation2020]. However, this information is not being translated into policy/action/change by means of a space existing between research implementation or rather knowledge and action [@toomeyNavigatingSpaceResearch2017]. A key front for improving this space is at the science-policy interface. Key solutions to some of the barriers preventing evidence-informed conservation policy are embedded in "raising awareness among the public and decision-makers regarding the long-term consequences of inaction" (Policy position, Switzerland) [@roseMajorBarriersEvidenceinformed2018]. This solution is poignant in Australia where the broader community and leaders/representatives designate insignificant attention, and consequently actions to the biodiversity crisis. We coin this awareness gap as a "social/political biodiversity crisis". This crisis manifests in that insufficient attention is applied to improving policy and providing the necessary resources to conservation is occurring within Australia. Scientist, and governance reviewers all identify these as significant constraints that we need to break down to improve conservation outcomes [@australiannationalauditoffice2022; @samuel2020; @reside2019].
+
+[@ref our new paper]
+
+JW: On top of a biodiversity crisis, there is a conservation crisis in Australia. There conservation crisis is a lack of conservation attention focussed at the biodiversity crisis. Key references National Audits, Samuel reviews, review and perspective papers by scientists (Reside etc) all show there is a lack of resources and action by leaders. Moreover, and related, there are clear shortfalls in Australians knowing or engaging with the issue. There is a clear need for new models in conservation to catalyse change. -->
+
+## Current efforts of increasing public understanding
+
+<!-- Whilst, this has all been acknowledged, catalysing change within this space has not been the focus of research [or advocacy efforts?]. Traditional or normal conservation science research undervalues the production of politically motivated social interventions. Conservation science is relatively connected with communities, in the last decade, social networks and digital technology has enabled large communities of citizen science to occur (e.g. iNaturalist, Zooniverse, eBird, iSpot). Citizens have become increasingly aware of the importance of monitoring biodiversity, the why behind it and have leaped at the opportunity to assist [@jolyMultimediaToolsApplications2018]. Yet, these efforts have been criticised [REF] as targeting or only attracting the ecologically minded, and thus a insignificant amount of the general population. Despite conservation being a mission-oriented discipline needing advocates and social-media buy-in, it seems to bereft of social media/digital platforms connecting people to the problem [@whitelawBiodiversityDataPublic2021]. Most public-facing ecology/conservation initiatives are focused on the needs of science (citizen-science) and the dissemination of results to managers (shiny apps), with a lack of focus on inducting broader society into the issue and encouraging advocacy for change. This has created a clear opportunity to build upon these efforts and for conservation science to begin designing models that explicity work towards addressing the barriers that exist at the science-policy interface. -->
+
+## Digital technology as an intervention
+
+<!-- Australia has one of the highest usage rates of social media/smart phone in the world [@vromenPoliticalEngagementAustralian]. Digital engagement is an integral part of young people's lives and their political interests and we know that political and social engagement is more likely to occur via online means [@vromenPoliticalEngagementAustralian]. Although disagreements of the value of digital mediums as an intervention for political engagement remain and the potential for harm/good exist, many groups now use it as a means to communicate stories and activism. Given this rise in usage (and data availability), opportunity for voices to be represented in politics is greater than ever before [@vromenPoliticalEngagementAustralian]. Given the accessibility of digital technology \[although many Aussies don't have access?\], offering a platform for engagement in the crisis is important [@jolyMultimediaToolsApplications2018].
+
+In the current attention market (tech companies, other issues, food/shelter responsibilities \[ref ezra klein poddy\]), we as a conservation community cannot expect a disaffected public to pay attention to an issue without a trade. Story-telling as a device for social change has risen dramatically in the past decades as an effective (?) means to broaden horizons. We must go beyond story-telling and offer a service to capture attention and thus entertain through education, if you must, to hook potential conservationists onto the issue. On the other hand, the conservation movement (\$?) is dwarfed by corporate or other interests (actually how much money does conservation attract compared to other issues/disciplines?).
+
+JW: Much hype around social media and apps to increase attention on social issues. Climate example, health examples? Yet in conservation, despite being a crisis discipline needing advocates, and wider society buy-in, there seems bereft of these social media initiatives connecting people to the problem. Most social media efforts in conservation and ecology has been focussed on the needs of the science (key refs include the papers already sent, we will need others) rather than disseminating the finding to the audience to the general public to advocate for change. -->
+
+## Objective/aims
+
+We deploy an ad-hoc issue-based digital-native organisation, called 'Threatened Australians' (TA) as means to experiment with adapting conservation research/efforts as a social/digital intervention. The Threatened Australians web-app operates at the interface between data-driven/science serving (typically, citizen science) platforms and political/social activism. It is the first attempt by a multidisciplinary team to provide an accessible and engaging web application aimed at raising public attention around the species crisis in Australia. The web-app was founded on aiming to provide a resource that would encourage users to engage with the problem and then offer easy means by which they can 'take action'. The primary action of the web-app was facilitating communication with local federal elected representatives via email, mimicking a tried and tested method of political participation [@vromenPoliticalEngagementAustralian]. The web-app was timed for release prior to the 2022 Australian federal election to raise attention as a electoral issue, which was seen as lacking from the platforms of the major parties [@coxWorstItEver2022]. In this paper, we describe:
+
+1. Our design and development process
+2. Analysis of the analytics and feedback data collected
+3. Results of the analysis and how they inform future iterations
+
+<!-- We describe the processes involved in the generation and deployment of the prototype. Second, we then provide details of how we collected data around app usage and users perceptions. Third, we synthesise this information to evaluate how it performed in the Australian media/political landscape and across electorates. Finally, we examine models for improving on our approach, its robustness, and future opportunities.
+
+JW: Here we provide a description of one of the first proactive attempts by a multidisciplinary team to provide a web app aimed at raising public attention around the species conservation crisis in Australia. Called "Threatened Australians" (TA), its aim is to raise awareness of the plight of threatened species, specifically there locations and threats. It was linked to post code so to bring get local attention (Refs on need for local action) and timed before the 2022 federal election so as to bring attention specifically around federal politicians. Therefore the key spatial boundaries used were federal electorates. We describe the generation of the prototype and testing methods, public usage of the app once realised and how this varied across different electorates. -->
+
+# Methods
+
+<!-- Key papers: @hendrieImpactMobilePhone2020, -->
+
+## Design and development
+
+<!-- Threatened Australians (TA) is available as a web app at a domain (threatened.org.au) through browser applications on mobile, desktop, and tablet. Once the core information was decided upon, it was gathered (see Folder SX for methodology and data information). Whilst adding and subtracting data sources was a regular occurrence throughout the design of the app and planning and design of the app begun after the core information was ready. The design of TA took on a multidisciplinary approach with regular evaluations. The development was led by a conservation science doctorate student with counsel from a conservation science professor, an interaction design expert, and a web developer. The team held an intial workshop with scientists/campaigners/organisers from Australian conservation eNGOs (WWF, TNC, Invasives Species Council, Birdlife, Bush Heritage, ACF, Queensland Conservation Council) and multiple academics to receive feedback on the idea and process. This initial workshop and subsequent discussions confirmed the decision on the core function of the app. The core goal of TA is to lead users to communicating with elected representatives and connection with environmental groups/nongovernmental organisations (eNGOs). During the design and development phase, the team held meetings to describe the vision and reassess design decisions. Once developed to a functional stage, the team held content and functionality testing workshops with three eNGOs (WWF, BirdLife, ACF) and a design workshop with experts from that field conducive to beta testing. Based on the feedback received, the app was re-designed to accommodate requests and advice. Alpha testing of the app did not occur.
+
+Users were presented with a home page that asked for their postcode (@fig-app-flow). The app would assign, or depending on the user's postcode, them to a CED. The user would see a species whose range intersects with the CED alongside information about that species such as its threats and geographic range. The user could cycle through the list of species associated with that CED or continue on to the how to help page. The how to help page identifies four key ways that a constituent or Australian citizen could assist threatened species within that region. -->
+
+```{r}
+#| label: fig-app-flow
+#| fig.cap: High-level navigation within the Threatened Australians application. Each panel represents a page starting with the Home page, followed by the Electorate page and How to Help page.
+#| out.width: 75%
+#| out.height: 75%
+
+knitr::include_graphics(here("output/figures/app_flow/app_flow.png"))
+
+#| [@hendrieImpactMobilePhone2020]
+```
+
+## Deployment and media
+
+<!-- Accompanying the live version of the app was a media release, which was sent out to Australian local and international media outlets. Accompanying the release date (02/05/22) was a 'The Conversation" article along with efforts being made via social media to promote TA. The app creators personally messaged organisations and networks of interest asking for air time on their platforms. -->
+
+## Data collection
+
+<!-- We generated data from two sources: passive analytics from usage and a opt-in survey of perceived experience. Usage data was collected by embedded Google Analytics 4 on the web app during a X week period from X date to X date. Analytics data reflected usage based on the following X indicators: (1) Page views and titles, (2) Acquisition of users, (3) X something else, (4) demographics. Survey data came from a form positioned in the header of the web app (Fig X) and was comprised of four free-text answers and two likert \[?\] scale questions. We filtered out the free-text questions (not enough volume, and kinda random responses, Supplementary Material S\* \[for full table of Q/A\]), and present the quantitative answers to the following questions: Q1 "Are you going to take any actions as a result of using the web app?"; Q2 "The information on this website was easy to understand:".
+
+Information on media reach/other things from Dom Jarvis Media reach from conversation article data -->
+
+## Analysis
+
+<!-- Google Analytics data was subset to be between the 2022/05/02 and 2022/06/14.Descriptive statistics of usage etc were used to... All analyses were conducted using R and X packages. -->
+
+# Results
+
+```{r import, include=FALSE}
+engag_title <- fromJSON(here("data/clean_data/engag_title_clean.json"))
+species_title <- fromJSON(here("data/clean_data/species_title_clean.json"))
+species_title_av_clean <- fromJSON(here("data/clean_data/species_title_av_time_clean.json"))
+help_title <- fromJSON(here("data/clean_data/help_title_clean.json"))
+acquis_time <- fromJSON(here("data/clean_data/acquis_time_clean.json")) %>%
+  mutate(date = as.Date(date))
+acquis_traffic <- fromJSON(here("data/clean_data/acquis_traffic_clean.json"))
+demo_country <- fromJSON(here("data/clean_data/demo_country_clean.json"))
+demo_region <- fromJSON(here("data/clean_data/demo_region_clean.json"))
+demo_city_geom_clean <- st_read(here("data/clean_data/demo_city_geom_clean.gpkg"))
+links_domain <- fromJSON(here("data/clean_data/links_domain_clean.json"))
+links_email <- fromJSON(here("data/clean_data/links_email_clean.json"))
+feedback <- fromJSON(here("data/clean_data/feedback_clean.json"))
+elects_demo <- fromJSON(here("data/clean_data/demo_clean.json"))
+media <- fromJSON(here("data/clean_data/media_clean.json")) %>%
+  mutate(published_date_time_AEST = ymd_hms(published_date_time_AEST))
+species <- st_read(here("data/clean_data/species_clean.gpkg"))
+elects <- st_read(here("data/clean_data/elect_clean.gpkg")) %>%
+  ms_simplify(.,
+              keep = 0.01,
+              keep_shape = TRUE) %>%
+  st_make_valid()
+```
+
+<!-- ### Para 1 - Description of users and timing -->
+
+```{r}
+acquis_time_sum <- acquis_time %>%
+  group_by(date) %>%
+  summarise(sum = sum(across(where(is.numeric))))
+```
+
+```{r}
+acquis_time_source <- acquis_time %>%
+  # group_by(date) %>%
+  summarise(across(where(is.numeric), sum)) %>%
+  pivot_longer(everything(), names_to = "source", values_to = "total") %>%
+  mutate(total_percent = total/sum(.$total)) %>%
+  mutate(total_percent = round(total_percent*100)) %>%
+  arrange(desc(total))
+```
+
+<!-- The TA web application was launched on the 3rd May 2022 ahead of the Australian federal election held on the 21st May 2022. Prior to election day, `r acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))` (`r acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise((sum = sum(sum))/(acquis_time_sum %>% summarise(sum = sum(sum)))*100) %>% round()`%) users visited the web app (Figure \ref(fig:user-time)). The largest acquisition source of users were from `r acquis_time_source %>% select(source) %>% slice(1)` input of the TA URL into a web browser application (`r acquis_time_source %>% select(total) %>% slice(1)`, `r acquis_time_source %>% select(total_percent) %>% slice(1)`%). The Australian Broadcasting Corporation accounted for `r acquis_time_source %>% select(total) %>% slice(2)` (`r acquis_time_source %>% select(total_percent) %>% slice(2)`%) users, followed by The Conversation with `r acquis_time_source %>% select(total) %>% slice(3)` (`r acquis_time_source %>% select(total_percent) %>% slice(3)`%), Google with `r acquis_time_source %>% select(total) %>% slice(4)` (`r acquis_time_source %>% select(total_percent) %>% slice(4)`%), and Facebook `r acquis_time_source %>% select(total) %>% slice(5)` (`r acquis_time_source %>% select(total_percent) %>% slice(5)`%).
+
+Released XXX. #% of users prior to election day. Over the course of X days up to federal election, \# Number of people and hits over time (Figure 2). -->
+
+```{r}
+#| label: fig-engag-usage-time
+#| fig-cap: Time series of Threatened Australians web app usage including key events. Acquisition of users from the corresponding websites (colour) and proportion in relation to total number of users (shaded area).
+
+# TODO: add in key media events, maybe by joining the two datasets, or manual add-in as per Chang 2018
+fig_engag_usage_time <- acquis_time %>%
+  select(!where(~ is.numeric(.) &&
+                  sum(.) <= 200)) %>%
+  pivot_longer(cols = -date,) %>%
+  rename(session_source = name,
+         users = value) %>%
+  filter(between(date,
+                 as.Date("2022-05-02"),
+                 as.Date("2022-05-30"))) %>%
+  ggplot(.) +
+  aes(x = date,
+      y = users,
+      fill = session_source) +
+  geom_area() +
+  # geom_text(
+  #   data = media,
+  #   aes(
+  #     x = published_date_time_AEST, #TODO: maybe this has something to do with the ymd format I got it in
+  #     label = platform_name,
+  #     y = 0
+  #     )
+  #   ) +
+  scale_fill_viridis(option = "H",
+                     discrete = TRUE) +
+  ylim(0, 5400) +
+  theme_minimal() +
+  labs(x = NULL,
+       y = "Number of users",
+       fill = "Acquisition") +
+  annotate(
+    "segment",
+    x = as.Date("2022-05-03"),
+    xend = as.Date("2022-05-03"),
+    y = 2500,
+    yend = 2700
+  ) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-05"),
+    y = 2850,
+    label = "The Conversation",
+    size = 2.5
+  ) +
+  # annotate("segment", x = as.Date("2022-05-15"), xend = as.Date("2022-05-15"), y = 5150, yend = 5300) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-15"),
+    y = 5300,
+    label = "ABC Science",
+    size = 2.5
+  ) +
+  annotate(
+    "segment",
+    x = as.Date("2022-05-24"),
+    xend = as.Date("2022-05-24"),
+    y = 500,
+    yend = 750
+  ) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-25"),
+    y = 900,
+    label = "Behind the News",
+    size = 2.5
+  ) +
+  annotate(
+    "segment",
+    x = as.Date("2022-05-21"),
+    xend = as.Date("2022-05-21"),
+    y = 300,
+    yend = 1150
+  ) +
+  annotate(
+    "text",
+    x = as.Date("2022-05-21"),
+    y = 1300,
+    label = "Election day",
+    size = 2.5
+  )
+ggsave(here("output/figures/engag_usage_time.png"), fig_engag_usage_time, units = "cm", width = 12, height = 15, dpi = 300)
+fig_engag_usage_time
+```
+
+<!-- ### Para 2 - How patterns differentiate -->
+
+```{r include=FALSE}
+species_title_geom <- elects %>%
+  full_join(., species_title) %>%
+  group_by(electorate, state_territory, state_territory_abbrev, demographic_class) %>%
+  summarise(
+    active_users = sum(active_users),
+    engaged_sessions = sum(engaged_sessions),
+    event_count = sum(event_count)
+  ) %>%
+  ungroup() %>%
+  st_union(by_feature = TRUE)
+species_title_summary <- species_title_geom %>%
+  st_set_geometry(NULL)
+```
+
+<!-- An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. As species were grouped by division, the CED with the most aggregated events on each species was `r species_title_summary %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r species_title_summary %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`) with `r species_title_summary %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)). In comparison, the CED with the least number of events was `r species_title_summary %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r species_title_summary %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r species_title_summary %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)).
+
+Australian CEDs contain an average of X people. You can see here that it is not an even distribution of our users. -->
+
+```{r}
+#| label: fig-CED-events
+#| fig-cap: Choropleth map of Australian Commonwealth Electoral Divisions (CEDs) and the aggregate number of events recorded on the species profile pages
+
+# I tried to do by city but this was unsuccessful as it didn't capture a lot, it kinda makes sense to do it via how we structured the app
+# Two options:
+# A) Could do one chart of sum species page view per electorate then
+# B) sum how to help page per electorate
+CED_events <- tm_shape(species_title_geom,
+         # bbox = st_bbox(
+         #   c(
+         #     xmin = 112.929704,
+         #     ymin = -43.627943,
+         #     xmax = 155.629864,
+         #     ymax = -9.115517
+         #   )
+         # )
+         ) +
+  tm_fill(
+    "event_count",
+    style = "cont",
+    # style = "cont",
+    title = "Event counts",
+    palette = "-inferno"
+  ) +
+  tm_borders(
+    alpha = .6
+  ) +
+  tm_text(
+    "electorate",
+    size = "AREA"
+  ) +
+  tm_compass(
+    # position = c(0.32, 0.02),
+    position = c("left", "bottom"),
+    size = 1.4
+  ) +
+  tm_scale_bar(
+    width = .2,
+    position = c("left", "bottom")
+  ) +
+  tm_layout(
+    frame = FALSE,
+    # legend.width = .25,
+    legend.height = .25,
+    # legend.title.size = .8
+    # legend.outside = TRUE
+    # legend.position = c("left", "BOTTOM")
+  )
+tmap_save(CED_events, here("output/figures/CED_events.png"), units = "cm",width = 10, height = 10, dpi = 300)
+CED_events
+```
+
+<!-- There were X number of threatened animals. There were X number of threatened plants. Every animal species in every electorate received at least X views.
+
+Number of species investigated and most popular species were XXX.
+
+Every how to help page received atleast X views. -->
+
+```{r, include = FALSE}
+# Background grey Australia
+# Coloured ranges of high engagement species
+# popouts of their photos
+aus <- ozmap(x = "country")
+select_species <- species %>%
+  filter(vernacular_name_first_clean %in% c("Helmeted Honeyeater", "Olive Python ", "Northern Bettong", "Butler's Dunnart", "Grassland Earless Dragon", "Elegant Frog"))
+species_engag_base_map <- tm_shape(aus,
+         bbox = st_bbox(
+           c(
+             xmin = 112.929704,
+             ymin = -43.627943,
+             xmax = 155.629864,
+             ymax = -9.115517
+           )
+         )) +
+  tm_polygons() +
+  tm_layout(frame = FALSE) +
+  tm_shape(select_species) +
+  tm_polygons("black", border.alpha = .4) +
+  tm_compass(
+    position = c("left", "bottom"),
+    size = 1.2) +
+  tm_scale_bar(
+    position = c("left", "bottom"),
+    width = .2)
+tmap_save(species_engag_base_map,
+  here("output/figures/engag_case_studies/species_engag_base_map.svg")
+  )
+  # edit in inkscape
+```
+
+```{r}
+#| label: fig-case-studies
+#| fig.cap: Case studies of the most engaged with threatened species and their range on the Australian continent
+#| out.width: 75%
+#| out.height: 75%
+
+knitr::include_graphics(here("output/figures/engag_case_studies/engag_case_studies.png"))
+```
+
+# Discussion
+
+## Long-term change and interest
+TA made headlines and created spikes in engagement. Whilst this is desirable, especially in the pre-election context where competition for media time was fierce, long-lasting awareness and understanding is the crown jewel of advocacy [@artsDigitalTechnologyConservation2015].
+Codesign is the way forward. It can't be rushed and isn't a linear process.
+Future applications should aim for careful implementation alongside long-lasting awareness building.
+@fig-app-flow
+@fig-engag-usage-time
+
+## Transactional engagement
+Modern organisations (FP and NFP) have heavily invested or begun with database management/linkage that enable optimisation of services to the preferences of an individual, through such technology as recommender algorithms. This is often done on the premise that the orgnaisation has something to "sell" or that the consunmer wants. This is not the case for conservation. Conservation is a mission-oriented movement/discipline aiming to save species. Medical science, agricultural science, climate science, etc. are all mission-oriented disciplines and have different motivations, components, and strategies for engagement or acheieveing their goals. Conservation is in a unique position to engage the populace in that it has the "coolness" of the natural world on its side. Think Attenborough, or any naturalist, doco, public awareness building.The public is not a consumer, they are a partner. This is a fundamental difference that needs to be understood and capitalised on in the design of future applications.
+@fig-CED-events
+@fig-case-studies
+
+## Competition and collaboration
+Constantly evolving socio-political context
+Particularly in conservation, organisations guard current and prospective supporters jealously. This insecurity and dedication to their own mission disables their abilities to coordinate together. As cooperation is an establish foundation of human achievement, we cannot expect to bend the curve of species loss/induct further followers into the mission-oriented focus of conservation if this continues. Furthermore, this causes
+
+## Other paragraph ideas
+* Education opportunities within tiers of schooling
+* Caveats
+
+<!-- ### Conclusion
+
+JW: Our efforts are a first attempt to get over a gap in the conservation space around making people aware of the challenges biodiversity faces and what they can do about it. It takes advantage of significant gains in science over the past decade documenting ranges and threats to species (cite NESP 7.7) and tries to generate information in a accessible to the general public. More is needed to get action etc and we have attempted to provide one model to bridge the knowledge-advocacy gap.
+
+The progression of conservation science from identifying the causes to designing and implementing the solutions has been explained in this study. Whilst the key step of evaluating the effectiveness of the intervention has not been undertaken (@williamsFutureRoleConservation2020a). This represents a key step for improvement in the kind of intervention we are examining here today.
+
+## Caveats
+
+-   Didn't organise anything prior to app release (lol)
+-   Science underlying digital tech conservation apps varies alot, our base data is rubbish
+
+# Supporting information
+
+All data is on a public, permanent repository found here.
+All materials are available on a public repository found here.
+
+# Acknowledgements
+
+G.S.K, N.K, and J.E.M.W conceived of and designed the research. G.S.K drafted the work. G.S.K, N.K, and J.E.M.W worked on acquisition, analysis, and interpretation of data. G.S.K, N.K, and J.E.M.W worked on the development of discussed topics. T.C developed the application. All authors contributed to the article with substantial revisions and approved the submitted version.
+
+The authors declare no conflicts of interest.
+
+This work was funded by the University of Queensland Centre for Biodiversity and Conservation Science, Green Fire Science laboratory, and the Queensland University of Technology Media centre thing. -->
+
+# References
