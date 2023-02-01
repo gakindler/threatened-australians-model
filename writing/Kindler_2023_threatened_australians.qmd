@@ -3,50 +3,31 @@ title: "A model for catalysing conservation knowledge and action through a digit
 format:
   docx:
     reference-doc: /home/gareth/science/admin/bibliography/word_templates/research_article_template.docx
-author:
-  - name: Gareth S. Kindler
-    affiliations:
-      - ref: CBCS
-      - ref: SEES
-    email: g.kindler\@uq.edu.au
-  - name: Nick Kelly
-    affiliations:
-      - ref: media
-  - name: Tim Carden
-    affiliations:
-      - ref: media
-  - name: James E.M. Watson
-    affiliations:
-      - ref: CBCS
-      - ref: SEES
-affiliations:
-  - id: CBCS
-    name: Centre for Biodiversity and Conservation Science, The University of Queensland
-    city: Brisbane
-    state: Queensland
-    postal-code: 4072
-  - id: SEES
-    name: School of Earth and Environmental Sciences, The University of Queensland
-    city: Brisbane
-    state: Queensland
-    postal-code: 4072
-  - id: media
-    name: School of Design, Queensland University of Technology
-    city: Brisbane
-    state: Queensland
-    postal-code: 4059
-abstract: |
-  Government action for species conservation is dependent upon public support. Whilst scientists, NGOs, and government have developed tools that improve accessibility, they fall short of engaging the broader public. Here we discuss the Threatened Australians (TA) web app, which uses existing data to tell the story of threatened species occurrence within government constituency boundaries, as an attempt to facilitate public support and thus political action. By examining the development, launch, and maintenance, this helps inform/improve future efforts the conservation community make in engaging broader audiences.
-keywords:
-  - threatened species
-  - digital technology
-  - conservation science
-  - design
 bibliography: ../my_lib.bib
 execute:
   echo: false
   warning: false
 ---
+
+<!-- Alt titles:
+* Building localised public awareness of the species extinction crisis through digital technology
+* Leveraging digital technology to catalyse conservation knowledge and action
+-->
+
+## Authors
+
+Gareth S. Kindler^1,2^\*, Nick Kelly^3^, Tim Carden^3^, James E.M. Watson^1,2^
+
+## Affiliations
+
+1. Centre for Biodiversity and Conservation Science, The University of Queensland, St Lucia 4072, Australia
+2. School of Earth and Environmental Sciences, The University of Queensland, St Lucia 4072, Australia
+3. School of Design, Queensland University of Technology, Brisbane 4059, Australia
+\ \
+
+\***Corresponding author email**: [g.kindler\@uq.edu.au](mailto:g.kindler@uq.edu.au){.email} \ \
+
+**Keywords**: threatened species, digital technology, conservation science, design
 
   <!-- pdf:
     toc: true
@@ -67,6 +48,29 @@ execute:
 
 <!-- Still can't get the bib to work. Getting "white space in argument of \bibdata" error in the .aux file -->
 
+Target journals:
+
+1. Nature Ecology and Evolution [(Comment)](https://www.nature.com/natecolevol/content)
+2. Ecology and Society [(IMRAD style)](https://ecologyandsociety.org/submissions/)
+3. Conservation Biology [(Essay, Contributed Paper, or Research Note)](https://conbio.onlinelibrary.wiley.com/hub/journal/15231739/homepage/forauthors.html)
+4. Conservation Letters [(Perspective or Letter)](https://conbio.onlinelibrary.wiley.com/hub/journal/1755263x/homepage/forauthors.html)
+5. Journal of Environmental Media [(long-form (7000 words) and short-form (1000 words))](https://www.intellectbooks.com/journal-of-environmental-media)
+6. Conservation Science and Practice [(Research Note, Perspective)](https://conbio.onlinelibrary.wiley.com/hub/journal/25784854/homepage/author-guidelines)
+7. Frontiers in Ecology and Environment [(Research Communication)](https://esajournals.onlinelibrary.wiley.com/hub/journal/15409309/resources/author-guidelines-FEE)
+8. Royal Society Journals such as Interface Focus [(Report)](https://royalsocietypublishing.org/journal/rsfs)
+\ \
+
+NB: UQ has a APC waiver with Wiley
+
+<!-- Potential reviewers:
+
+1. Ariadne Vromen
+2. Mitchell Whitelaw (maybe not this guy because we invited him to collab but never followed up :/) -->
+
+# Abstract
+
+It is essential to increase public awareness of the biodiversity crisis. Whilst scientists, NGOs, and government have developed tools that improve accessibility, they fall short of engaging the broader public. Here we describe the implementation and evaluation of the Threatened Australians (TA) web app, which uses existing data to tell the story of threatened species. By capitalising on recent advances in data, the app aims to communicate localised snapshots of the crisis through electoral districts. Electoral districts offer a means to cultivate political support which is currently lacking. Examining the development, launch, and maintenance of the app helps to inform/improve future efforts.
+
 ```{r libraries, include=FALSE}
 library(pacman)
 pacman::p_load(tidyverse, sf, magrittr, jsonlite, units, readxl, stringr, plotly, forcats, reactable, readODS, naniar, viridis, ggridges, networkD3, httpgd, lubridate, oz, ozmaps, mapdata, maps, tmap, rmapshaper, here, png)
@@ -77,29 +81,11 @@ here::here()
 here::i_am("writing/Kindler_2023_threatened_australians.qmd")
 ```
 
-# Publishing
-
-Target journals (in order of preference):
-
-1. Ecology and Society [(IMRAD style)](https://ecologyandsociety.org/submissions/)
-2. Conservation Biology [(Essay, Contributed Paper, or Research Note)](https://conbio.onlinelibrary.wiley.com/hub/journal/15231739/homepage/forauthors.html)
-3. Conservation Letters [(Perspective or Letter)](https://conbio.onlinelibrary.wiley.com/hub/journal/1755263x/homepage/forauthors.html)
-4. Journal of Environmental Media [(long-form (7000 words) and short-form (1000 words))](https://www.intellectbooks.com/journal-of-environmental-media)
-5. Conservation Science and Practice [(Research Note, Perspective)](https://conbio.onlinelibrary.wiley.com/hub/journal/25784854/homepage/author-guidelines)
-6. Frontiers in Ecology and Environment [(Research Communication)](https://esajournals.onlinelibrary.wiley.com/hub/journal/15409309/resources/author-guidelines-FEE)
-
-NB: UQ has a APC waiver with Wiley
-
-<!-- Potential reviewers:
-
-1. Ariadne Vromen
-2. Mitchell Whitelaw (maybe not this guy because we invited him to collab but never followed up :/) -->
-
-\newpage
-
 # Introduction
 
-## Public understanding is essential
+## Public understanding is lacking and essential
+
+Biodiveristy declining. Science not being translated into change. Key proposed solutions to this are raising awareness.
 
 <!-- Biodiversity is declining at increasingly accelerated rates. While conservation science is just one of the tools to address this problem, it does not have a good track record of translating effort into widespread/transformative change [@evansReconceptualizingRoleScience2021]. Much previously exerted effort within conservation science has been dedicated to describing the state of biodiversity and species and proximate drivers of change [@williamsFutureRoleConservation2020]. However, this information is not being translated into policy/action/change by means of a space existing between research implementation or rather knowledge and action [@toomeyNavigatingSpaceResearch2017]. A key front for improving this space is at the science-policy interface. Key solutions to some of the barriers preventing evidence-informed conservation policy are embedded in "raising awareness among the public and decision-makers regarding the long-term consequences of inaction" (Policy position, Switzerland) [@roseMajorBarriersEvidenceinformed2018]. This solution is poignant in Australia where the broader community and leaders/representatives designate insignificant attention, and consequently actions to the biodiversity crisis. We coin this awareness gap as a "social/political biodiversity crisis". This crisis manifests in that insufficient attention is applied to improving policy and providing the necessary resources to conservation is occurring within Australia. Scientist, and governance reviewers all identify these as significant constraints that we need to break down to improve conservation outcomes [@australiannationalauditoffice2022; @samuel2020; @reside2019].
 
@@ -109,9 +95,13 @@ JW: On top of a biodiversity crisis, there is a conservation crisis in Australia
 
 ## Current efforts of increasing public understanding
 
+Conservation science is not disconnected from communities. It has citizen science. Only target the ecologically minded which is a small portion of the population.
+
 <!-- Whilst, this has all been acknowledged, catalysing change within this space has not been the focus of research [or advocacy efforts?]. Traditional or normal conservation science research undervalues the production of politically motivated social interventions. Conservation science is relatively connected with communities, in the last decade, social networks and digital technology has enabled large communities of citizen science to occur (e.g. iNaturalist, Zooniverse, eBird, iSpot). Citizens have become increasingly aware of the importance of monitoring biodiversity, the why behind it and have leaped at the opportunity to assist [@jolyMultimediaToolsApplications2018]. Yet, these efforts have been criticised [REF] as targeting or only attracting the ecologically minded, and thus a insignificant amount of the general population. Despite conservation being a mission-oriented discipline needing advocates and social-media buy-in, it seems to bereft of social media/digital platforms connecting people to the problem [@whitelawBiodiversityDataPublic2021]. Most public-facing ecology/conservation initiatives are focused on the needs of science (citizen-science) and the dissemination of results to managers (shiny apps), with a lack of focus on inducting broader society into the issue and encouraging advocacy for change. This has created a clear opportunity to build upon these efforts and for conservation science to begin designing models that explicity work towards addressing the barriers that exist at the science-policy interface. -->
 
 ## Digital technology as an intervention
+
+Australia has highest rate of social media/smart phone usage in world. Integral part of our lives and expressing political interests. Opportunity to exploit digitech is greatest it has ever been.
 
 <!-- Australia has one of the highest usage rates of social media/smart phone in the world [@vromenPoliticalEngagementAustralian]. Digital engagement is an integral part of young people's lives and their political interests and we know that political and social engagement is more likely to occur via online means [@vromenPoliticalEngagementAustralian]. Although disagreements of the value of digital mediums as an intervention for political engagement remain and the potential for harm/good exist, many groups now use it as a means to communicate stories and activism. Given this rise in usage (and data availability), opportunity for voices to be represented in politics is greater than ever before [@vromenPoliticalEngagementAustralian]. Given the accessibility of digital technology \[although many Aussies don't have access?\], offering a platform for engagement in the crisis is important [@jolyMultimediaToolsApplications2018].
 
@@ -193,7 +183,7 @@ elects <- st_read(here("data/clean_data/elect_clean.gpkg")) %>%
   st_make_valid()
 ```
 
-<!-- ### Para 1 - Description of users and timing -->
+## Description of users and timing
 
 ```{r}
 acquis_time_sum <- acquis_time %>%
@@ -303,7 +293,9 @@ ggsave(here("output/figures/engag_usage_time.png"), fig_engag_usage_time, units 
 fig_engag_usage_time
 ```
 
-<!-- ### Para 2 - How patterns differentiate -->
+## How events differentiate spatially and between pages
+
+Every electorate around Australia received X views. These clustered here. Every how to help page received atleast X views.
 
 ```{r include=FALSE}
 species_title_geom <- elects %>%
@@ -377,11 +369,9 @@ tmap_save(CED_events, here("output/figures/CED_events.png"), units = "cm",width 
 CED_events
 ```
 
-<!-- There were X number of threatened animals. There were X number of threatened plants. Every animal species in every electorate received at least X views.
+## How events differentiate between species
 
-Number of species investigated and most popular species were XXX.
-
-Every how to help page received atleast X views. -->
+There were X number of threatened animals. There were X number of threatened plants. Every animal species in every electorate received at least X views. Number of species investigated and most popular species were XXX.
 
 ```{r, include = FALSE}
 # Background grey Australia
@@ -426,23 +416,30 @@ knitr::include_graphics(here("output/figures/engag_case_studies/engag_case_studi
 
 # Discussion
 
-## Long-term change and interest
-TA made headlines and created spikes in engagement. Whilst this is desirable, especially in the pre-election context where competition for media time was fierce, long-lasting awareness and understanding is the crown jewel of advocacy [@artsDigitalTechnologyConservation2015].
-Codesign is the way forward. It can't be rushed and isn't a linear process.
-Future applications should aim for careful implementation alongside long-lasting awareness building.
-@fig-app-flow
-@fig-engag-usage-time
+## Long-term change and co-design
+
+TA made headlines and created spikes in engagement. Whilst this is desirable, especially in the pre-election context where competition for media time was fierce, long-lasting awareness and understanding is the crown jewel of advocacy [@artsDigitalTechnologyConservation2015]. Co-design (and other principles) offer a means to achieve this.
+<!-- Codesign is the way forward. It can't be rushed and isn't a linear process.
+Future applications should aim for careful implementation alongside long-lasting awareness building. -->
+
+Relevant figures: @fig-app-flow, @fig-engag-usage-time
 
 ## Transactional engagement
-Modern organisations (FP and NFP) have heavily invested or begun with database management/linkage that enable optimisation of services to the preferences of an individual, through such technology as recommender algorithms. This is often done on the premise that the orgnaisation has something to "sell" or that the consunmer wants. This is not the case for conservation. Conservation is a mission-oriented movement/discipline aiming to save species. Medical science, agricultural science, climate science, etc. are all mission-oriented disciplines and have different motivations, components, and strategies for engagement or acheieveing their goals. Conservation is in a unique position to engage the populace in that it has the "coolness" of the natural world on its side. Think Attenborough, or any naturalist, doco, public awareness building.The public is not a consumer, they are a partner. This is a fundamental difference that needs to be understood and capitalised on in the design of future applications.
-@fig-CED-events
-@fig-case-studies
+
+All modern orgs are hyper transactional and tailor the experience to the preferences of individuals. To increase the public's awareness, conservation needs to compete for attention. Conservation has a unique edge in its mission of saving species, it has the natural world ("coolness", morality, instrumentality) on its side. Given the popularity of Attenborough, Irwin, and similar there are substantial inroads to be made here. Furthermore, the vast biodiversity and research into human preferences makes tailoring digital experiences to boost engagement feasible. This is a fundamental difference that needs to be understood and capitalised on in the design of future applications.
+
+<!-- Modern organisations (FP and NFP) have heavily invested or begun with database management/linkage that enable optimisation of services to the preferences of an individual, through such technology as recommender algorithms. This is often done on the premise that the orgnaisation has something to "sell" or that the consunmer "wants". This is not the case for conservation. Conservation is a mission-oriented movement/discipline aiming to save species. People are needed in this mission because the human and non-human are interwined. The related fields of medical science, agricultural science, climate science, etc. are all mission-oriented disciplines and have different motivations, components, and strategies for acheieveing their goals. Conservation is in a unique position to engage the populace in that it has the "coolness" of the natural world on its side. Think Attenborough, or any naturalist, doco, public awareness building. The public is not a consumer, they are a partner. This is a fundamental difference that needs to be understood and capitalised on in the design of future applications. -->
+
+Relevant figures: @fig-CED-events, @fig-case-studies
 
 ## Competition and collaboration
-Constantly evolving socio-political context
-Particularly in conservation, organisations guard current and prospective supporters jealously. This insecurity and dedication to their own mission disables their abilities to coordinate together. As cooperation is an establish foundation of human achievement, we cannot expect to bend the curve of species loss/induct further followers into the mission-oriented focus of conservation if this continues. Furthermore, this causes
+
+Particularly in conservation, organisations guard current and prospective supporters jealously. This insecurity and dedication to their own mission disables their abilities to coordinate together. As cooperation is an established foundation of human achievement, we cannot expect to bend the curve of species loss/induct further followers into the mission-oriented focus of conservation if this continues. Development of these applications should be done in collaboration with organisations, and the data needs to be shared to enable further research and development.
+
+<!-- Furthermore, this is worsened in the constantly evolving socio-political context. -->
 
 ## Other paragraph ideas
+
 * Education opportunities within tiers of schooling
 * Caveats
 
