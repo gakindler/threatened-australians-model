@@ -1,0 +1,158 @@
+---
+title: "Building broader public awareness of the biodiversity through digital technology"
+format:
+  docx:
+    reference-doc: /home/gareth/science/admin/bibliography/word_templates/research_article_template.docx
+bibliography: ../my_lib.bib
+execute:
+  echo: false
+  warning: false
+---
+
+Alt titles:
+
+* Building public awareness of the species extinction crisis through digital technology
+* Leveraging digital technology to catalyse conservation knowledge and action
+* A model for catalysing conservation knowledge and action through a digital platform
+
+## Authors
+
+Gareth S. Kindler^1,2^\*, Nick Kelly^3^, Tim Carden^3^, James E.M. Watson^1,2^
+
+## Affiliations
+
+1. Centre for Biodiversity and Conservation Science, The University of Queensland, St Lucia 4072, Australia
+2. School of Earth and Environmental Sciences, The University of Queensland, St Lucia 4072, Australia
+3. School of Design, Queensland University of Technology, Brisbane 4059, Australia
+\ \
+
+\***Corresponding author email**: [g.kindler\@uq.edu.au](mailto:g.kindler@uq.edu.au){.email} \ \
+
+**Keywords**: threatened species, digital technology, conservation science, design
+
+  <!-- pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    fig-pos: 'h' -->
+
+<!-- format:
+  plos-pdf:
+    number-sections: false
+    journal:
+      id: plosone
+    include-in-header:
+      text: |
+        % Remove comment for double spacing
+        % \usepackage{setspace}
+        % \doublespacing -->
+
+<!-- Still can't get the bib to work. Getting "white space in argument of \bibdata" error in the .aux file -->
+
+Target journals:
+
+1. Nature Ecology and Evolution [(Comment)](https://www.nature.com/natecolevol/content)
+2. Ecology and Society [(IMRAD style)](https://ecologyandsociety.org/submissions/)
+3. Conservation Biology [(Essay, Contributed Paper, or Research Note)](https://conbio.onlinelibrary.wiley.com/hub/journal/15231739/homepage/forauthors.html)
+4. Conservation Letters [(Perspective or Letter)](https://conbio.onlinelibrary.wiley.com/hub/journal/1755263x/homepage/forauthors.html)
+5. Journal of Environmental Media [(long-form (7000 words) and short-form (1000 words))](https://www.intellectbooks.com/journal-of-environmental-media)
+6. Conservation Science and Practice [(Research Note, Perspective)](https://conbio.onlinelibrary.wiley.com/hub/journal/25784854/homepage/author-guidelines)
+7. Frontiers in Ecology and Environment [(Research Communication)](https://esajournals.onlinelibrary.wiley.com/hub/journal/15409309/resources/author-guidelines-FEE)
+8. Royal Society Journals such as Interface Focus [(Report)](https://royalsocietypublishing.org/journal/rsfs)
+\ \
+
+NB: UQ has a APC waiver with Wiley
+
+<!--
+Potential reviewers:
+1. Ariadne Vromen
+2. Mitchell Whitelaw (maybe not this guy because we invited him to collab but never followed up :/)
+-->
+
+```{r, include=FALSE}
+here::here()
+here::i_am("writing/Kindler_2023_threatened_australians.qmd")
+```
+
+# Abstract
+
+Public awareness of the biodiversity crisis is lacking and essential. Whilst scientists, NGOs, and government have developed tools that improve accessibility, they fall short of engaging the broader public. Here we describe the implementation of the Threatened Australians (TA) web app and our model for its creation. TA capitalises on recent proliferation of open access data to showcase the state of threatened species in Australia. Examining the development, launch, and maintenance of the app helps to inform future efforts.
+
+# Introduction
+
+An unstable biosphere threatens further extinctions of non-humans and poses substantial risk to humans. Given the current trajectory of biodiversity destruction, current projections are expecting the situation to get much worse. Science does not have a good track record of translating effort into the necessary change [@evansReconceptualizingRoleScience2021, @toomeyNavigatingSpaceResearch2017]. Transformative changes are needed to address the nexus of biodiversity, climate, and society.
+
+This crisis manifests in that insufficient attention is applied to improving policy and providing the necessary resources to conservation. Scientists, and governance reviewers all identify these as significant constraints that we need to break down to improve conservation outcomes [@australiannationalauditoffice2022; @samuel2020; @reside2019]. Key solutions to some of the barriers preventing a better interface between research and policy are embedded in "raising awareness among the public and decision-makers regarding the long-term consequences of inaction" (Policy position, Switzerland) [@roseMajorBarriersEvidenceinformed2018].
+
+Delivering transformative and robust change will require bipartisan support. It is therefore important to engage broader society in the crisis. "Although shifting basic beliefs and attitudes about climate change does not always lead to changes in behaviours or policy support, educating people about basic climate realities is an important foundation for problem recognition and solution seeking [CHECK who they REF here]." [@goldbergShiftingRepublicanViews2021]
+
+In Australia, public awareness is X [need stats and studies here].
+
+# Conservation undervalues the production of broad-scale social interventions
+
+Conservation science is relatively connected with communities, in the last decade, social networks and digital technology has enabled large communities of citizen science to occur (e.g. iNaturalist, Zooniverse, eBird, iSpot). Citizens have become increasingly aware of the importance of monitoring biodiversity, the why behind it and have leaped at the opportunity to assist [@jolyMultimediaToolsApplications2018]. Yet, these efforts have been criticised [REF] as targeting or only attracting the ecologically minded, and thus a insignificant amount of the general population [@whitelawBiodiversityDataPublic2021]. These public-facing ecology/conservation initiatives are focused on the needs of science (citizen-science) and the dissemination of results to managers (shiny apps), with a lack of focus on inducting broader society into the issue and encouraging advocacy for change. This has created a clear opportunity to build upon these efforts and for conservation science to begin designing models that explicity work towards addressing the barriers that exist at the science-policy interface.
+
+Digital engagement is an integral part of young people's lives and their political interests and we know that political and social engagement is more likely to occur via online means [@vromenPoliticalEngagementAustralian]. Given this rise in usage (and data availability), opportunity for voices to be represented in politics is greater than ever before [@vromenPoliticalEngagementAustralian]. Increasingly younger people are experiencing and opting for digital worlds [REF]. How does digital engagement fare across all age groups, not just young people?
+
+# Threatened Australians
+
+We deployed an ad-hoc web-app, called "Threatened Australians" (threatened.org.au, TA) as a proof-of-concept of using existing open-source data to create a social intervention. TA operates at the interface between data-driven/science serving (typically, citizen science) platforms and political/social/advocacy activism. TA was founded on aiming to provide a resource that would encourage users to engage with the problem and then offer easy means by which they can 'take action'. The primary action of TA was facilitating communication with local federal elected representatives via email, mimicking a tried and tested method of political participation [@vromenPoliticalEngagementAustralian].
+
+Development of the app begun once the core information was decided upon and gathered (see Folder SX for methodology and data information). The design of TA took on a multidisciplinary approach with regular evaluations. The development was led by a conservation science doctorate student with counsel from a conservation science professor, an interaction design expert, and a web developer. The team held an intial workshop with scientists/campaigners/organisers from Australian conservation eNGOs (WWF, TNC, Invasives Species Council, Birdlife, Bush Heritage, ACF, Queensland Conservation Council) and multiple academics to receive feedback on the idea and process. This initial workshop and subsequent discussions confirmed the decision on the core function of the app. During the design and development phase, the team held meetings to describe the vision and reassess design decisions. Once developed to a functional stage, the team held content and functionality testing workshops with three eNGOs (WWF, BirdLife, ACF) and a design workshop with experts from that field conducive to beta testing. Based on the feedback received, the app was re-designed to accommodate requests and advice. Alpha testing of the app did not occur.
+
+On initial visit to the app, users were presented with the home page which asked for their postcode. The app would assign the user to the electorate that postcode was local to. The user would see a species whose range intersects with the CED alongside information about that species such as its threats and geographic range. The user could cycle through the list of species associated with that CED or continue on to the how to help page. The how to help page identifies four key ways that a constituent or Australian citizen could assist threatened species within that region. Other functions of TA included a Resource, a Browse (electorates), an About, and Feedback pages.
+
+TA was timed for release prior to the 2022 Australian federal election to raise attention as a electoral issue, which was seen as lacking from the platforms of the major parties [@coxWorstItEver2022]. Accompanying the live version of the app was a media release, a "Conversation" article, and effort within personal networks to receive airtime.
+
+# Co-design and long-term change
+
+TA made headlines and created spikes in engagement. Whilst this is desirable, especially in the pre-election context where competition for media time was fierce, long-lasting awareness and understanding is the crown jewel of advocacy [@artsDigitalTechnologyConservation2015]. Co-design (and other principles) offer a means to achieve this.
+Codesign is the way forward. It can't be rushed and isn't a linear process.
+Future applications should aim for careful implementation alongside long-lasting awareness building.
+
+# Biodiversity's edge in a competitive information environment
+
+Celebrity environmentalism
+
+To increase the public's awareness, conservation needs to compete for attention in an existing information environment/attention market. Against beefed-up tech companies. However, conservation has a unique advantage to assist in attracting attention to the mission of saving biodiversity. The beauty of the natural world has been proven to instill wonder, X positive emotions, X social/biology theory. Furthermore, arguments with roots in morality and instrumentality (way of life, fishing?). Given the popularity of Attenborough, Irwin, and similar there are substantial inroads to be made here.
+
+Story-telling as a device for social change has risen dramatically in the past decades as an effective (?) means to broaden horizons. We must go beyond story-telling and offer a service to capture attention and thus entertain through education, if you must, to hook potential conservationists onto the issue.
+
+Modern organisations (FP and NFP) have heavily invested or begun with database management/linkage that enable optimisation of services to the preferences of an individual, through such technology as recommender algorithms. This is often done on the premise that the orgnaisation has something to "sell" or that the consunmer "wants". In the context of raising awareness to save biodiversity, people are needed to achieve this mission because the human and non-human are interwined not as a consumer, they are a partner (kind of are a consumer of nature?). This is a fundamental difference that needs to be understood and capitalised on in the design of future applications.
+
+Research into human preferences has revealed information on biodiversity preferences that would make tailoring digital experiences to boost engagement feasible.
+
+@bavelUsingSocialBehavioural2020
+
+# Competition and collaboration
+
+Particularly in conservation, organisations guard current and prospective supporters jealously. This insecurity and dedication to their own mission disables their abilities to coordinate together. As cooperation is an established foundation of human achievement, we cannot expect to bend the curve of species loss/induct further followers into the mission-oriented focus of conservation if this continues. Development of these applications should be done in collaboration with organisations, and the data needs to be shared to enable further research and development. Furthermore, this is worsened in the constantly evolving socio-political context.
+
+# Communication
+
+Climate done this before. Med sci etc all done this before
+The related fields of medical science, agricultural science, climate science, etc. are all mission-oriented disciplines and have different motivations, components, and strategies for acheieveing their goals.
+
+# Other paragraph ideas
+
+* Education opportunities within tiers of schooling
+* Caveats
+
+### Conclusion
+
+JW: Our efforts are a first attempt to get over a gap in the conservation space around making people aware of the challenges biodiversity faces and what they can do about it. It takes advantage of significant gains in science over the past decade documenting ranges and threats to species (cite NESP 7.7) and tries to generate information in a accessible to the general public. More is needed to get action etc and we have attempted to provide one model to bridge the knowledge-advocacy gap.
+
+# Supporting information
+
+All data is on a public, permanent repository found here.
+All materials are available on a public repository found here.
+
+# Acknowledgements
+
+G.S.K, N.K, and J.E.M.W conceived of and designed the research. G.S.K drafted the work. G.S.K, N.K, and J.E.M.W worked on the development of discussed topics. T.C developed the application. All authors contributed to the article with substantial revisions and approved the submitted version.
+
+The authors declare no conflicts of interest.
+
+This work was funded by the University of Queensland Centre for Biodiversity and Conservation Science, Green Fire Science laboratory, and the Queensland University of Technology Media centre thing.
+
+# References
