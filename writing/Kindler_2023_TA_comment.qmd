@@ -1,0 +1,170 @@
+---
+title: "Leveraging digital technology to catalyze public will for saving biodiversity"
+format:
+  docx:
+    reference-doc: /home/gareth/science/admin/bibliography/word_templates/research_article_template.docx
+bibliography: ../lenovo_pop_os_my_library.bib
+crossref:
+  ref-hyperlink: true
+execute:
+  echo: false
+  warning: false
+---
+
+## Authors
+
+Gareth S. Kindler^1,2^\*, Nick Kelly^3^, Tim Carden^3^, James E.M. Watson^1,2^
+
+## Affiliations
+
+1. Centre for Biodiversity and Conservation Science, The University of Queensland, St Lucia 4072, Australia
+2. School of Earth and Environmental Sciences, The University of Queensland, St Lucia 4072, Australia
+3. School of Design, Queensland University of Technology, Brisbane 4059, Australia
+\ \
+
+\***Corresponding author email**: [g.kindler\@uq.edu.au](mailto:g.kindler@uq.edu.au){.email} \ \
+
+**Keywords**: biodiversity, digital technology, conservation, interaction design, political will, public will
+
+## Target journal - Nature EE Comment
+
+Nature EE's main points in response to our article pitch:
+
+- Interested in discussing biodiversity enhancement as an election issue
+- Interested in the linking of elected officials to biodiversity crisis
+- Concern over narrow focus on Threatened Australians experience and representative democracies (many systems exist in the world)
+- Suggest to collaborate with co-authors in other locations
+- Showcase multiple case studies (2 or 3) for broader perspective
+- General framing: emphasize making biodiversity an election issue, that the public are aware they can contribute to decisions about
+- Discuss why it isn't a prevalent issue yet
+- Mention successful examples (e.g., Costa Rica) \ \
+
+If we define election issue as "an issue is an important subject that people are arguing about or discussing during a political election", then it follows that it needs to be controversial, otherwise there wouldn't be much to discuss. I don't think biodiversity is an election issue, nor do we want it to be, and thus isn't the right framing here. I think what we (and the editors) mean is; we want it to get attention from the political system, if it encounters contention, then for those in power to have the appropriate support to be able to decide in favour of biodiversity. Otherwise known as public and political will. This has got little to do with whether or not I see biodiversity in the discussion in the lead up to an election. \ \
+
+[Submission guidelines](https://www.nature.com/natecolevol/content) \ \
+
+<!--
+A Comment is a very flexible format, focusing on the scientific, societal, or policy issues surrounding research. Comment articles should be topical, readable, provocative and introduce new concepts/points of view, providing a personal perspective on a matter of public or scientific importance. The main criteria are that they should be of immediate interest to a broad readership and should be written in an accessible, non-technical style.
+- Length – varies but typically no longer than 1,500 words.
+- There are no specific structural guidelines.
+- Comments do not normally contain primary research data, although they may present 'sociological' data (funding trends, demographics, bibliographic data, etc.).
+- References should be used sparingly, usually between 10-25.
+- Article titles are omitted from the reference list.
+- Peer review is at the editors' discretion.
+-->
+
+Comment examples: [1](https://www.nature.com/articles/s41559-020-01285-z), [2](https://www.nature.com/articles/s41559-022-01976-9), [3](https://www.nature.com/articles/s41559-020-01285-z)
+
+## Potential co-authors
+
+"Public will" search terms:
+
+- "policy backing" OR "political will" OR "public will" OR "decision-maker consensus" OR "support from key stakeholders" OR "political endorsement" OR "policy buy-in" OR "leadership agreement" OR "commitment from authorities" OR "unified support" OR "public understanding" OR "public awareness" OR "behaviour change" OR "effective policy" \ \
+
+I think we should find potential co-authors either via the elements that create public will or by fields that have already tried to do it.
+
+- Campaigning
+  - [Why do people donate to conservation? Insights from a ‘real world’ campaign](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0191888)
+- Celebrity endorsement
+  - [A scoping review of celebrity endorsement in environmental campaigns and evidence for its effectiveness](https://conbio.onlinelibrary.wiley.com/doi/full/10.1111/csp2.261)
+- Climate change
+  - [Leveraging Social Science to Generate Lasting Engagement with Climate Change Solutions](https://www.cell.com/one-earth/abstract/S2590-3322(20)30420-6)
+  - [Harnessing the Power of Communication and Behavior Science to Enhance Society's Response to Climate Change](https://doi.org/10.1146/annurev-earth-031621-114417)
+    - [Jagadish Thaker](https://communication-arts.uq.edu.au/profile/7112/jagadish-thaker)
+- Documentaries/TV
+  - [Digital conservation: A review of the website ARKive.org](https://link.springer.com/article/10.1057/biosoc.2010.8)
+    - [Jean-Baptiste Gouyon](https://www.ucl.ac.uk/sts/people/dr-jean-baptiste-gouyon)
+
+<!--
+## Potential reviewers
+
+1. Ariadne Vromen
+2. Mitchell Whitelaw (maybe not this guy because we somewhat invited him to collab but never followed up :/)
+-->
+
+```{r, include=FALSE}
+here::here()
+here::i_am("writing/Kindler_2023_TA_comment.qmd")
+```
+
+\newpage
+
+# Abstract
+
+Conservation has developed tools that make it easier for people to learn about the issue. Yet, they fall short on engaging the broader public, and building political and public will. We explore digital intervention case studies and outline the elements required to achieve these goals.
+
+# Introduction
+
+Biodiversity is the worse off and less known global environmental threat [@steffenwillPlanetaryBoundariesGuiding2015]. As well as being affected directly, it is representative of all other Earth system stressors [@lovejoyHabitableEarthProtecting2019]. Current projections for biodiversity are expecting the situation to get much worse.
+
+Conservation science has focused on describing the state of the problem such as identifying species and ecosystems that are at risk [@williamsFutureRoleConservation2020]. This has left behind a poor track record of translating effort into the desired change, or rather a field plagued by incrementalism [@evansReconceptualizingRoleScience2021; @toomeyNavigatingSpaceResearch2017]. Ambitions to save all species have been replaced by triage of the most threatened species and ecosystems.
+
+Yet, the crisis is driven by the activities of humans and the resources that they consume. This demands a social response. Whilst changes in the activities of individuals can help, system-level changes are required to be transformative [@leiserowitz17BuildingPublic2019]. Conventional policy solutions aimed at limiting the activities of humans have largely failed [@schmitzSustainingHumansNature2019; @ipbesSummaryPolicymakersGlobal2019].
+
+Delivering transformative policy will require broad support. It is therefore important to engage the public and decision-makers in the crisis [@roseMajorBarriersEvidenceinformed2018; @raileDefiningPublicWill2014; @postDefiningPoliticalWill2010]. Raising awareness is also a precursor to "problem recognition and solution seeking" [@goldbergShiftingRepublicanViews2021; @goldbergLeveragingSocialScience2020], which are key foundations in cultivating public and political will for policy change.
+\ \
+
+Other/alt paragraphs:
+
+- Collective action/wicked problem
+- How do we translate the value of biodiversity into policy change when majority of world unaware of it
+
+# Politically charging social interventions
+
+Social networks and digital technology has enabled large communities of citizen science to occur (e.g. iNaturalist, Zooniverse, eBird, iSpot). The public have become increasingly aware of the importance of monitoring biodiversity, the why behind it and have leaped at the opportunity to assist [@jolyMultimediaToolsApplications2018]. Yet, these efforts have been criticised as targeting or only attracting the ecologically minded [REF], and thus a insignificant amount of the general population [@whitelawBiodiversityDataPublic2021]. These public-facing ecology initiatives are focused on the needs of science, with little to no focus on inducting broader society into the issue. This has created a clear opportunity to build upon these efforts and for conservation science to begin explicitly building political and public will.
+
+Digital engagement is an integral part of young people's (and old?) lives and their political interests and we know that political and social engagement is more likely to occur via online means [@vromenPoliticalEngagementAustralian]. Given this rise in usage, opportunity for voices to be represented in politics is greater than ever before [@vromenPoliticalEngagementAustralian].
+
+# Case study 1
+
+# Case study 2
+
+# Case study 3
+
+# Sustained engagement (Alt: deep engagement, sustained change, enduring change)
+
+Recently, @goldbergLeveragingSocialScience2020 reported the research integral to aiming for long-term change in social climate change research.
+Long-lasting awareness and understanding is the crown jewel of advocacy [@artsDigitalTechnologyConservation2015].
+Future applications should aim for careful implementation alongside long-lasting awareness building.
+
+# Biodiversity's upper hands (Alt: Biodiversity's advantage in a competitive information environment, The allure of biodiversity, More than one allure)
+
+To increase public will, conservation needs to compete for attention in an existing information environment/attention market. Biodiversity has unique practical, emotional, and philosophical advantages that can assist in attracting attention to the mission of saving it. These are ecosystem services, cultural and spiritual values, aesthetic value, discovery (scientific and non-scientific), creative inspiration, mesmerising adaptations/behaviours (biolumin, traits), moral and ethical considerations, psychological well-being. There is risk of these advantages being fetishized/romanticised to the public, but it affords the opportunity to showcase what is at stake. Celebrity environmentalists such as Attenborough, Irwin, Goodall have all successfully used biodiversity content in their platforms.
+\ \
+
+Other/alt paragraphs:
+- Something here about mental models and schemas that are relevant to biodiversity conservation such as threats to self and nature, interconnected systems, way of life, regenerative agriculture, indigenous histories [@goldbergLeveragingSocialScience2020]
+
+# Tailoring experiences (Alt: Maximising engagement)
+
+Publics are motivated by different reasons to take action. "Building public awareness of biodiversity requires an understanding of the publics within a population"[@leiserowitz17BuildingPublic2019] [Remember the ACF report they shared with us, this is what that did]. Biodiversity must compete against well-resourced legacy and new media companies such as TikTok. These modern organisations (FP and NFP) have heavily invested in tailoring the experience of their users to individual preferences (e.g. recommender algorithms), to increase engagement. Research into human preferences has revealed information on biodiversity preferences that would make tailoring digital experiences to boost engagement feasible [@thommesWhatInstagramCan2021; @tribotIntegratingAestheticValue2018]. Tailored engagement strategies are needed to reach different publics and sustain their involvement.
+
+Organisations often operate on the premise that the organisation has something to "sell" or that the consumer "wants". In the context of raising awareness to save biodiversity, people are needed to achieve this mission because the human and non-human are intertwined in the wicked problem context. Not as a consumer, they are a partner (or a kind of consumer of nature?). This is a fundamental difference that needs to be understood and capitalised on in the design of future applications.
+
+# Conclusion
+
+# Other/alt paragraph ideas
+
+- Messaging - there are many messages to spout such as deepening the public's understanding of nature, importance of functional landscapes, arguably the most important is political/public will
+- Competition and collaboration - orgs are disorganised, have diverse agendas, guard supporters jealously, impeding coordination
+- Importance of drawing upon theory, field, and lab experiment-based guidelines for messaging/building awareness
+- "Young people have unique skills and attributes that might help overcome the impasses and incrementalism that have plagued sustainability efforts in recent years. [@spajicTokenismMeaningfulYouth2019]"
+- "Solutionism" trap that comes with technology and the development of applications. The hope for a technological solution naturally intensifies if other options (like a carbon tax) appear impractical or politically untenable.
+- Issue publics - are a group of people who are interested in a particular issue and are willing to engage with it
+- Increasingly younger people are experiencing and opting for digital worlds [REF]
+- Biodiversity awareness building needs to be careful to not fall into either tokenism or exploitation
+
+# Supporting information
+
+All data is on a public, permanent repository found here.
+All materials are available on a public repository found here.
+
+# Acknowledgements
+
+G.S.K, N.K, and J.E.M.W conceived of and designed the research. G.S.K drafted the work. G.S.K, N.K, T.C and J.E.M.W worked on the development of discussed topics. All authors contributed to the article with substantial revisions and approved the submitted version.
+
+The authors declare no conflicts of interest.
+
+This work was funded by the University of Queensland Centre for Biodiversity and Conservation Science, Green Fire Science laboratory, and the Queensland University of Technology School of Design.
+
+# References
