@@ -44,13 +44,19 @@ If we define election issue as "an issue is an important subject that people are
 [Submission guidelines](https://www.nature.com/natecolevol/content) \ \
 
 <!--
-A Comment is a very flexible format, focusing on the scientific, societal, or policy issues surrounding research. Comment articles should be topical, readable, provocative and introduce new concepts/points of view, providing a personal perspective on a matter of public or scientific importance. The main criteria are that they should be of immediate interest to a broad readership and should be written in an accessible, non-technical style.
-- Length – varies but typically no longer than 1,500 words.
-- There are no specific structural guidelines.
-- Comments do not normally contain primary research data, although they may present 'sociological' data (funding trends, demographics, bibliographic data, etc.).
-- References should be used sparingly, usually between 10-25.
-- Article titles are omitted from the reference list.
-- Peer review is at the editors' discretion.
+Perspective
+
+A Perspective is a format for scholarly reviews and discussions of the primary research literature that are too technical for a Comment (see below) but do not meet the criteria for a Review—either because the scope is too narrow, or because the author is advocating a controversial position or a speculative hypothesis or discussing work primarily from one group. Two reviews advocating opposite sides in a research controversy are normally published as Perspectives.
+
+Format
+
+    Main text – 3,000-4,000 words,
+    4-6 display items (figures, tables or boxes).
+    No footnotes.
+    References – up to 100 (exceptions are possible in special cases).
+    Reviews include received/accepted dates.
+    Reviews are peer reviewed.
+
 -->
 
 Comment examples: [1](https://www.nature.com/articles/s41559-020-01285-z), [2](https://www.nature.com/articles/s41559-022-01976-9), [3](https://www.nature.com/articles/s41559-020-01285-z)
@@ -82,11 +88,6 @@ I think we should find potential co-authors either via the elements that create 
 2. Mitchell Whitelaw (maybe not this guy because we somewhat invited him to collab but never followed up :/)
 -->
 
-```{r, include=FALSE}
-here::here()
-here::i_am("writing/Kindler_2023_TA_comment.qmd")
-```
-
 \newpage
 
 # Abstract
@@ -102,18 +103,79 @@ Conservation science has focused on describing the state of the problem such as 
 Yet, the crisis is driven by the activities of humans and the resources that they consume. This demands a social response. Whilst changes in the activities of individuals can help, system-level changes are required to be transformative [@leiserowitz17BuildingPublic2019]. Conventional policy solutions aimed at limiting the activities of humans have largely failed [@schmitzSustainingHumansNature2019; @ipbesSummaryPolicymakersGlobal2019].
 
 Delivering transformative policy will require broad support. It is therefore important to engage the public and decision-makers in the crisis [@roseMajorBarriersEvidenceinformed2018; @raileDefiningPublicWill2014; @postDefiningPoliticalWill2010]. Raising awareness is also a precursor to "problem recognition and solution seeking" [@goldbergShiftingRepublicanViews2021; @goldbergLeveragingSocialScience2020], which are key foundations in cultivating public and political will for policy change.
-\ \
 
-Other/alt paragraphs:
+Collective action/wicked problem
 
-- Collective action/wicked problem
-- How do we translate the value of biodiversity into policy change when majority of world unaware of it
+How do we translate the value of biodiversity into policy change when majority of world unaware of it
 
 # Politically charging social interventions
 
 Social networks and digital technology has enabled large communities of citizen science to occur (e.g. iNaturalist, Zooniverse, eBird, iSpot). The public have become increasingly aware of the importance of monitoring biodiversity, the why behind it and have leaped at the opportunity to assist [@jolyMultimediaToolsApplications2018]. Yet, these efforts have been criticised as targeting or only attracting the ecologically minded [REF], and thus a insignificant amount of the general population [@whitelawBiodiversityDataPublic2021]. These public-facing ecology initiatives are focused on the needs of science, with little to no focus on inducting broader society into the issue. This has created a clear opportunity to build upon these efforts and for conservation science to begin explicitly building political and public will.
 
 Digital engagement is an integral part of young people's (and old?) lives and their political interests and we know that political and social engagement is more likely to occur via online means [@vromenPoliticalEngagementAustralian]. Given this rise in usage, opportunity for voices to be represented in politics is greater than ever before [@vromenPoliticalEngagementAustralian].
+
+```{r}
+pacman::p_load(tidyverse, httpgd, here, ggrepel)
+here::here()
+here::i_am("writing/TA_theory/Kindler_2023_TA_theory.qmd")
+```
+
+```{r}
+quad_data <- tibble(
+  title = c("TA", "ALA", "My Backyard"),
+  motives = c(7.5, 2.5, 7.5),
+  audience = c(7.5, 2.5, 2.5)
+)
+
+empty_theme <- theme(
+  plot.background = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  axis.text.y = element_text(angle = 90)
+)
+
+plot <- ggplot(quad_data, aes(x = motives, y = audience, label = title)) +
+  coord_fixed() +
+  # set the scale to one greater than 0-10 in each direction
+  # this gives us some breating room and space to add some arrows
+  scale_x_continuous(
+    expand = c(0, 0), limits = c(0, 10),
+    breaks = c(1,9), labels=c("1" = "Apolitical", "9" = "Political")
+  ) +
+  scale_y_continuous(
+    expand = c(0, 0), limits = c(0, 10),
+    breaks = c(1,9), labels=c("1" = "Specific", "9" = "Broad")
+  ) +
+  empty_theme +
+  labs(
+    x = "Motives",
+    y = "Audience"
+  ) +
+  geom_point(colour = "black", size = 3) +
+  geom_label_repel(
+    size = 6, fill = "deepskyblue",
+    colour = "black"
+  ) +
+  geom_segment(aes(x = 10, y = 0, xend = 10, yend = 10)) +
+  geom_segment(aes(x = 0, y = 0, xend = 0, yend = 10)) +
+  geom_segment(aes(x = 0, y = 0, xend = 10, yend = 0)) +
+  geom_segment(aes(x = 0, y = 5, xend = 10, yend = 5)) +
+  geom_segment(aes(x = 5, y = 0, xend = 5, yend = 10)) +
+  geom_segment(aes(x = 0, y = 10, xend = 10, yend = 10))
+  # annotate("text", x = 2.5, y = 2.5, alpha = 0.35, label = "X") +
+  # annotate("text", x = 2.5, y = 7.5, alpha = 0.35, label = "Y") +
+  # annotate("text", x = 7.5, y = 2.5, alpha = 0.35, label = "Z") +
+  # annotate("text", x = 7.5, y = 7.5, alpha = 0.35, label = "W")
+
+
+plot
+
+ggsave(here("output/quadrant.pdf"), width = 15, height = 15, units = "cm")
+```
 
 # Case study 1
 
