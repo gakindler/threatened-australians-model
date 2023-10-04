@@ -10,8 +10,6 @@ execute:
 
 I originally started writing this article completely in Quarto. Having to interface with Word users killed this ambition. And also writing out the results in a way that used in-line code meant that I couldn't see the results until it was rendered which is fine but not ideal for the full writing of a research article. I replaced these ambitions with that I would carry out the analysis in a (this) Quarto doc and render it to html/pdf for transplanting across to the main word article for writing.
 
-# Analysis
-
 ```{r libraries, include=FALSE}
 prepare_workspace <- function() {
   pacman::p_load(tidyverse, sf, magrittr, jsonlite, units, readxl, stringr, plotly, forcats, reactable, readODS, naniar, viridis, ggridges, networkD3, httpgd, lubridate, oz, ozmaps, mapdata, maps, tmap, rmapshaper, here, png)
@@ -34,7 +32,33 @@ data_nonspatial <- load_json_data()
 data_spatial <- load_spatial_data()
 ```
 
-## Survey results
+
+# Impact and actions
+
+## Actions taken
+
+### Email your MP (analytics)
+
+* What was the conversion rate of user to email MP link clicks?
+
+```{r}
+data_nonspatial$links_email_clean <- data_nonspatial$links_email_clean |>
+  arrange(desc(event_count))
+
+knitr::kable(head(data_nonspatial$links_email_clean, 10))
+```
+
+```{r}
+data_nonspatial$acquis_time_sum <- make_acquis_time_sum(data_nonspatial$acquis_time_clean)
+```
+
+The total number of email MP link clicks was `r data_nonspatial$links_email_clean %>% summarise(sum = sum(event_count))`. If we assume that users only clicked the email MP link once, then the conversion rate of users to email MP link clicks was `r data_nonspatial$links_email_clean %>% summarise(sum = sum(event_count))` / `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))`. The median number of email MP link clicks per electoral district was `r data_nonspatial$links_email_clean %>% summarise(median = median(event_count))`. The top four electoral districts which received the most "Email your MP" link clicks were Berowra (NSW), Ryan (QLD), Grayndler (NSW), and Eden-Monaro (NSW).
+
+### Learning about current rep voting record (analytics)
+
+Communicating with an elected representative requires having an understanding of how they represent their constituents. The web app displayed They Vote For You's conclusion on how that representative had "voted on federal government action on animal & plant extinctions". We found there were `r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "theyvoteforyou")) |> select(event_count)` clicks on links to They Vote For You that allowed the user to explore more about representative voting behaviour.
+
+## Survey responses (survey)
 
 ```{r}
 data_nonspatial$feedback_clean <- transform_feedback(data_nonspatial$feedback_clean)
@@ -65,35 +89,38 @@ data_nonspatial$feedback_easy_to_understand |>
 
 We received 35 responses on the survey found at the feedback link on the header of the app. 40% of users who answered the form said they were going to take actions as a result of using the app. 43% said they were either probably, that they would not or were unsure of whether they would. 60% of survey form answers either agreed or strongly agreed that the information found on the app was easy to understand.
 
+## User testimonials (survey)
+
 ```{r}
 view(data_nonspatial$feedback_clean)
 ```
 
-At least three users expressed desire for a list of all threatened species in each electoral division that would allow them to search or quickly scan as opposed to click to cycle through species one at a time.
+At least three users expressed desire for a list of all threatened species in each electoral division that would allow them to search or quickly scan as opposed to click to cycle through species one at a time. For example, "It would be good to have a list of the animals/plants first with links rather than have to click through".
 
 A few users expressed confusion or dislike by finding offshore islands being part of their electoral division despite this being the case in reality, "by going by my electorate you have included Norfolk Island (which has been lumped into Bean) threatened species which have no relevance to me in Canberra 2607".
 
-Multiple users expressed a discrepancy between their knowledge of which threatened species are local to them and what was presented to them. This observation from users highlights the obselescence of the EPBC Act data.
+Multiple users expressed a discrepancy between their knowledge of which threatened species are local to them and what was presented to them. This observation from users highlights the obsolescence of the EPBC Act data as seen in the user response "it included many species that disappeared from the area long ago."
+
+When users were asked if they have any suggestions for ways that we might improve the project, a user suggested "I think it would be extremely useful to add actions for kids to take in the "what you can do" part".
 
 * "I was really illuminated by this web app - had no idea there were so many vulnerable species around me. You often think of endangered species as being out in the bush - I''m urban and this was surprising to me."
-* "Brilliant electorate based platform to connect people to biodiversity in their area, and more activate them into electorate level mobilisations [sic]"
+* "Brilliant electorate based platform to connect people to biodiversity in their area, and more activate them into electorate level mobilisations"
 * "Keeping an eye out for the species, and possibly contacting my MP" and "Inform our community group, write to the federal, state and local members"
 
-When users were asked if they have any suggestions for ways that we might improve the project, responses regularly mentioned expanding the user interface to include a high-level navigation and downloadable list of threatened species in each electoral division. For example, "It would be good to have a list of the animals/plants first with links rather than have to click through". A user suggested "I think it would be extremely useful to add actions for kids to take in the "what you can do" part".
+# User activity
 
-## Usage results
-
-### How did media events relate to usage statistics?
+## General user activity and sources (analytics)
 
 * What is the total number of users the app received?
 
 ```{r}
-data_nonspatial$acquis_time_sum <- make_acquis_time_sum(data_nonspatial$acquis_time_clean)
-
 data_nonspatial$acquis_time_source <- make_acquis_time_source(data_nonspatial$acquis_time_clean)
+
+data_nonspatial$acquis_time_source |>
+  summarise(sum = sum(total))
 ```
 
-The TA web application was launched on the 3rd May 2022 ahead of the Australian federal election held on the 21st May 2022. Prior to election day, `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))` (`r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise((sum = sum(sum))/(data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum)))*100) %>% round()`%) users visited the web app (Figure \ref(fig:user-time)). The largest acquisition source of users were from `r data_nonspatial$acquis_time_source %>% select(source) %>% slice(1)` input of the TA URL into a web browser application (`r data_nonspatial$acquis_time_source %>% select(total) %>% slice(1)`, `r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(1)`%). The Australian Broadcasting Corporation accounted for `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(2)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(2)`%) users, followed by The Conversation with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(3)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(3)`%), Google with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(4)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(4)`%), and Facebook `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(5)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(5)`%).
+The TA web application was launched on the May 3, 2022 ahead of the Australian federal election held on the May 21, 2022. Prior to election day, `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))` (`r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise((sum = sum(sum))/(data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum)))*100) %>% round()`%) users visited the web app (Figure X). During the six week period from May 3, 2022 to June 14, 2022, the TA web app received a total of `r data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum))` users. The largest acquisition source of users were from `r data_nonspatial$acquis_time_source %>% select(source) %>% slice(1)` input of the TA URL into a web browser application (`r data_nonspatial$acquis_time_source %>% select(total) %>% slice(1)`, `r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(1)`%). The Australian Broadcasting Corporation accounted for `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(2)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(2)`%) users, followed by The Conversation with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(3)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(3)`%), Google with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(4)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(4)`%), and Facebook `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(5)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(5)`%).
 
 ```{r}
 #| label: fig-engag-usage-time
@@ -104,7 +131,10 @@ The TA web application was launched on the 3rd May 2022 ahead of the Australian 
 plot_engage_usage_time(data_nonspatial$acquis_time_clean)
 ```
 
-### How events differentiate spatially and between pages
+
+# Content engagement
+
+## Most-clicked links (analytics)
 
 * What were the most clicked links?
 
@@ -117,42 +147,8 @@ knitr::kable(head(data_nonspatial$links_domain_clean, 10))
 
 The most clicked domain link was to "environment.gov.au". The web app linked to this domain across multiple pages such as under the About me section and the scientific names of each plant species on the electoral district page. The second most clicked link was a hyperlink primarily found as a hyperlink in the Plants section of the Electoral district page under the text "Berowra has or used to have 40 threatened plants found within its boundaries. Some of these might not be as photogenic as the Large-eared Pied Bat but they're just as important.". The link provided more information on why plants are important through Australia's SoE report.
 
-* What was the conversion rate of user to email MP link clicks?
+## Species engagement (analytics)
 
-```{r}
-data_nonspatial$links_email_clean <- data_nonspatial$links_email_clean |>
-  arrange(desc(event_count))
-
-knitr::kable(head(data_nonspatial$links_email_clean, 10))
-```
-
-The total number of email MP link clicks was `r data_nonspatial$links_email_clean %>% summarise(sum = sum(event_count))`. If we assume that users only clicked the email MP link once, then the conversion rate of users to email MP link clicks was `r data_nonspatial$links_email_clean %>% summarise(sum = sum(event_count))` / `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))`. The median number of email MP link clicks per electoral district was `r data_nonspatial$links_email_clean %>% summarise(median = median(event_count))`. The top four electoral districts which received the most "Email your MP" link clicks were Berowra (NSW), Ryan (QLD), Grayndler (NSW), and Eden-Monaro (NSW).
-
-* How many events occurred across all pages?
-
-There were a total of `r data_nonspatial$engag_title_clean |> summarise(sum = sum(event_count))` events on the Electoral District page.
-
-* How many events occurred on the How-to-help page?
-
-There were a total of `r data_nonspatial$help_title_clean |> summarise(sum = sum(event_count))` events on the How to Help page.
-
-* How many events occurred on the district page?
-* Which districts experienced the highest number of events?
-
-```{r include=FALSE}
-data_spatial[['species_title_spatial']] <- mk_species_title_spatial(data_spatial$elect_clean, data_nonspatial$species_title_clean)
-
-data_nonspatial[['species_title']] <- data_spatial$species_title_spatial %>%
-  st_set_geometry(NULL)
-```
-
-An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. As species were grouped by division, the CED with the most aggregated events on each species was `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)). In comparison, the CED with the least number of events was `r data_nonspatial$species_title %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)).
-
-```{r}
-plot_ced_events(data_spatial$species_title_spatial)
-```
-
-### How events differentiate between species
 
 * Which species received the most engagement/events?
 
@@ -241,18 +237,39 @@ data_nonspatial$species_title_av_time_clean |>
   knitr::kable()
 ```
 
-```{r, include = FALSE}
-mk_svg_high_engag_species_map(data_spatial$species_clean)
 
-data_nonspatial[['species_clean']] <- data_spatial$species_clean |>
-  st_set_geometry(NULL) |> as_tibble()
+## User interaction with pages (analytics)
+
+* How many events occurred across all pages?
+
+There were a total of `r data_nonspatial$engag_title_clean |> summarise(sum = sum(event_count))` events on the Electoral District page.
+
+* How many events occurred on the How-to-help page?
+
+There were a total of `r data_nonspatial$help_title_clean |> summarise(sum = sum(event_count))` events on the How to Help page.
+
+* How many events occurred on the district page?
+* Which districts experienced the highest number of events?
+
+```{r include=FALSE}
+data_spatial[['species_title_spatial']] <- mk_species_title_spatial(data_spatial$elect_clean, data_nonspatial$species_title_clean)
+
+data_nonspatial[['species_title']] <- data_spatial$species_title_spatial %>%
+  st_set_geometry(NULL)
 ```
+
+An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. As species were grouped by division, the CED with the most aggregated events on each species was `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)). In comparison, the CED with the least number of events was `r data_nonspatial$species_title %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)).
 
 ```{r}
-#| label: fig-case-studies
-#| fig.cap: Case studies of the most engaged with threatened species and their range on the Australian continent
-#| out.width: 75%
-#| out.height: 75%
-
-# knitr::include_graphics(here("output/figures/engag_case_studies/engag_case_studies.png"))
+plot_ced_events(data_spatial$species_title_spatial)
 ```
+
+
+
+
+
+
+
+
+
+
