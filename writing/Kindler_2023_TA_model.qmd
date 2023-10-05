@@ -1,6 +1,7 @@
 ---
 title: "Analysis for Threatened Australians model paper"
 format: html
+toc: true
 bibliography: ../lenovo_pop_os_my_library_spec.bib
 link-citations: true
 execute:
@@ -12,7 +13,7 @@ I originally started writing this article completely in Quarto. Having to interf
 
 ```{r libraries, include=FALSE}
 prepare_workspace <- function() {
-  pacman::p_load(tidyverse, sf, magrittr, jsonlite, units, readxl, stringr, plotly, forcats, reactable, readODS, naniar, viridis, ggridges, networkD3, httpgd, lubridate, oz, ozmaps, mapdata, maps, tmap, rmapshaper, here, png)
+  pacman::p_load(tidyverse, sf, magrittr, jsonlite, units, readxl, stringr, plotly, forcats, reactable, readODS, naniar, viridis, ggridges, networkD3, httpgd, lubridate, oz, ozmaps, mapdata, maps, tmap, rmapshaper, here, png, tmap, leaflet, grid, cartogram, rmapshaper, tmaptools, magrittr)
 
   here::here()
   here::i_am("writing/Kindler_2023_TA_model.qmd")
@@ -31,7 +32,6 @@ data_nonspatial <- load_json_data()
 
 data_spatial <- load_spatial_data()
 ```
-
 
 # Impact and actions
 
@@ -87,12 +87,12 @@ data_nonspatial$feedback_easy_to_understand |>
 
 ```
 
-We received 35 responses on the survey found at the feedback link on the header of the app. 40% of users who answered the form said they were going to take actions as a result of using the app. 43% said they were either probably, that they would not or were unsure of whether they would. 60% of survey form answers either agreed or strongly agreed that the information found on the app was easy to understand.
+There were 35 genuine responses out of 57 on the survey found at the feedback link on the header of the app. 40% of users who answered the form said they were going to take actions as a result of using the app. 43% said they were either probably, that they would not or were unsure of whether they would. 60% of survey form answers either agreed or strongly agreed that the information found on the app was easy to understand.
 
 ## User testimonials (survey)
 
 ```{r}
-view(data_nonspatial$feedback_clean)
+# view(data_nonspatial$feedback_clean)
 ```
 
 At least three users expressed desire for a list of all threatened species in each electoral division that would allow them to search or quickly scan as opposed to click to cycle through species one at a time. For example, "It would be good to have a list of the animals/plants first with links rather than have to click through".
@@ -241,13 +241,7 @@ data_nonspatial$species_title_av_time_clean |>
 ## User interaction with pages (analytics)
 
 * How many events occurred across all pages?
-
-There were a total of `r data_nonspatial$engag_title_clean |> summarise(sum = sum(event_count))` events on the Electoral District page.
-
 * How many events occurred on the How-to-help page?
-
-There were a total of `r data_nonspatial$help_title_clean |> summarise(sum = sum(event_count))` events on the How to Help page.
-
 * How many events occurred on the district page?
 * Which districts experienced the highest number of events?
 
@@ -258,18 +252,163 @@ data_nonspatial[['species_title']] <- data_spatial$species_title_spatial %>%
   st_set_geometry(NULL)
 ```
 
-An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. As species were grouped by division, the CED with the most aggregated events on each species was `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)). In comparison, the CED with the least number of events was `r data_nonspatial$species_title %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure \@ref(fig:CED-events)).
-
 ```{r}
-plot_ced_events(data_spatial$species_title_spatial)
+data_rando_vars <- list()
+
+data_rando_vars$sum_total_class_species <- data_nonspatial$species_title |> count(demographic_class) |> summarise(sum = sum(n))
+data_rando_vars$sum_total_event_count_species <- sum(data_nonspatial$species_title$event_count)
+data_rando_vars$sum_total_class_help <- data_nonspatial$help_title_clean |> count(demographic_class) |> summarise(sum = sum(n))
+data_rando_vars$sum_total_event_count_help <- sum(data_nonspatial$help_title_clean$event_count)
+
+data_nonspatial$species_title %>%
+  group_by(state_territory_abbrev, demographic_class) %>%
+  summarise(
+    class_n = n(),
+    class_n_percent = n()/data_rando_vars$sum_total_class_species * 100,
+    total_event_count = sum(event_count),
+    total_event_count_percent = total_event_count/data_rando_vars$sum_total_event_count_species * 100
+  ) %>%
+  arrange(desc(total_event_count)) |>
+  knitr::kable()
 ```
 
+An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. The majority of events occurred across all the Species pages `r data_rando_vars$sum_total_event_count_species` (`r round(data_rando_vars$sum_total_event_count_species / (data_rando_vars$sum_total_event_count_species + data_rando_vars$sum_total_event_count_help) * 100)`%) compared to `r data_rando_vars$sum_total_event_count_help` (`r round(data_rando_vars$sum_total_event_count_help / (data_rando_vars$sum_total_event_count_help + data_rando_vars$sum_total_event_count_help) * 100)`) events on the How to Help pages.
+
+The Species pages with the most events aggregated by electoral district was `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`, n = `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)`), followed by `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(2)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(2)`, n = `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(2)`), and `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(3)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(3)`, n = `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(3)`).
+
+In comparison, the least number of Species events was from the district of `r data_nonspatial$species_title %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure X).
 
 
+```{r}
+data_nonspatial$help_title_clean %>%
+  group_by(state_territory_abbrev, demographic_class) %>%
+  summarise(
+    class_n = n(),
+    class_n_percent = n()/data_rando_vars$sum_total_class_help * 100,
+    total_event_count = sum(event_count),
+    total_event_count_percent = total_event_count/data_rando_vars$sum_total_event_count_help * 100
+  ) %>%
+  arrange(desc(total_event_count)) |>
+  knitr::kable()
+```
+
+The How to Help page with the most events was from the electoral district of `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`, n = `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)`), followed by `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(2)` (`r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(2)`, n = `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(2)`), and `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(3)` (`r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(3)`, n = `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(3)`).
+
+```{r}
+data_nonspatial$species_help_title_clean <- data_nonspatial$help_title_clean |>
+  select(electorate, state_territory, state_territory_abbrev, demographic_class, event_count) |>
+  # now join this data with the other while merging into one the rows that match in electorate, state_territoyr, state_territory_abbrev, demographic_class while summing the event_count column
+  left_join(data_nonspatial$species_title, by = c("electorate", "state_territory", "state_territory_abbrev", "demographic_class")) |>
+  select(-c(active_users, engaged_sessions)) |>
+  # mutate a new column which is the addition of event_count.x, event_count.y
+  mutate(event_count = event_count.x + event_count.y) |>
+  select(-c(event_count.x, event_count.y))
+```
+
+```{r}
+mk_species_help_title_spatial <- function(data, data_join) {
+  species_help_title_spatial <- data %>%
+    full_join(., data_join) |>
+    mutate(
+      electorate_abbrev = abbreviate(
+          electorate,
+          minlength = 2L
+      )
+    ) |>
+    relocate(electorate_abbrev, .after = electorate)
+
+  return(species_help_title_spatial)
+}
+
+data_spatial$species_help_title_spatial <- mk_species_help_title_spatial(data_spatial$elect_clean, data_nonspatial$species_help_title_clean)
+
+# print(object.size(data_spatial$species_help_title_spatial), units = "Kb")
+
+# elect <- ms_simplify(
+#   elect,
+#   keep = 0.1,
+#   keep_shape = TRUE
+# ) %>%
+#   st_make_valid()
 
 
+data_spatial$species_help_title_spatial_dorl_weight <- data_spatial$species_help_title_spatial %>%
+  st_transform(
+    3112
+  ) %>%
+  cartogram_dorling(
+    weight = "event_count",
+    k = 0.18
+    # m_weight = 1
+  )
 
+#### tmap ####
 
+figures <- list()
 
+figures$species_help_title_spatial_dorl <-
+tm_shape(
+  data_spatial$elect_clean,
+  bbox = st_bbox(c(
+    xmin = 112.929704,
+    ymin = -43.627943,
+    xmax = 155.629864,
+    ymax = -9.115517
+    )
+  )
+  ) +
+  tm_borders(
+    "white",
+    lwd = 1
+  ) +
+  tm_fill(
+    "#d8d8d8"
+  ) +
+  tm_shape(
+    data_spatial$species_help_title_spatial_dorl_weight,
+    bbox = st_bbox(c(
+      xmin = 112.929704,
+      ymin = -43.627943,
+      xmax = 155.629864,
+      ymax = -9.115517
+    )
+  )
+  ) +
+  tm_fill(
+    "event_count",
+    style = "jenks",
+    # style = "cont",
+    title = "Event count",
+    palette = "-inferno"
+  ) +
+  tm_text(
+    "electorate_abbrev",
+    size = 0.45
+  ) +
+  tm_borders(
+    alpha = 0.6
+  ) +
+  # tm_legend(
+    # legend.position = c("left", "top")
+    # title.position = c("left", "bottom")
+  # ) +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar(
+    position = c("left", "bottom"),
+    width = 0.2
+  ) +
+  tm_layout(
+    frame = FALSE,
+    # legend.width = 1,
+    # legend.height = 0.8,
+    # legend.title.size = 1.5
+    # legend.outside = TRUE
+  )
 
+figures$species_help_title_spatial_dorl
 
+tmap_save(figures$species_help_title_spatial_dorl,
+  file = here("output/figures/ced_events_dorl.png"),
+  height = 15, width = 15, units = "cm"
+)
+```
