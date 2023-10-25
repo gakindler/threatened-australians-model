@@ -33,13 +33,65 @@ data_nonspatial <- load_json_data()
 data_spatial <- load_spatial_data()
 ```
 
-# Impact and actions
+# User activity
 
-## Actions taken
+## General user activity (analytics)
 
-### Email your MP (analytics)
+```{r}
+data_nonspatial$acquis_time_source <- make_acquis_time_source(data_nonspatial$acquis_time_clean)
 
-* What was the conversion rate of user to email MP link clicks?
+data_nonspatial$acquis_time_sum <- make_acquis_time_sum(data_nonspatial$acquis_time_clean)
+```
+
+During the six week period from May 3, 2022 to June 14, 2022, the TA web app received a total of `r data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum))` users.
+
+```{r include=FALSE}
+data_spatial[['species_title_spatial']] <- mk_species_title_spatial(data_spatial$elect_clean, data_nonspatial$species_title_clean)
+
+data_nonspatial[['species_title']] <- data_spatial$species_title_spatial %>%
+  st_set_geometry(NULL)
+```
+
+```{r}
+data_nonspatial$species_help_title_clean <- data_nonspatial$help_title_clean |>
+  select(electorate, state_territory, state_territory_abbrev, demographic_class, event_count) |>
+  # now join this data with the other while merging into one the rows that match in electorate, state_territoyr, state_territory_abbrev, demographic_class while summing the event_count column
+  left_join(data_nonspatial$species_title, by = c("electorate", "state_territory", "state_territory_abbrev", "demographic_class")) |>
+  select(-c(active_users, engaged_sessions)) |>
+  # mutate a new column which is the addition of event_count.x, event_count.y
+  mutate(event_count = event_count.x + event_count.y) |>
+  select(-c(event_count.x, event_count.y))
+```
+
+```{r}
+data_rando_vars <- list()
+
+data_rando_vars$sum_total_class_species <- data_nonspatial$species_title |> count(demographic_class) |> summarise(sum = sum(n))
+data_rando_vars$sum_total_event_count_species <- sum(data_nonspatial$species_title$event_count)
+data_rando_vars$sum_total_class_help <- data_nonspatial$help_title_clean |> count(demographic_class) |> summarise(sum = sum(n))
+data_rando_vars$sum_total_event_count_help <- sum(data_nonspatial$help_title_clean$event_count)
+data_rando_vars$sum_total_class_event_species_help <- data_nonspatial$species_help_title_clean |> count(demographic_class) |> summarise(sum = sum(n))
+data_rando_vars$sum_total_event_species_help <- data_nonspatial$species_help_title_clean |> summarise(sum = sum(event_count))
+```
+
+An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. The majority of events occurred across the 361 Species (animal) pages `r data_rando_vars$sum_total_event_count_species` (`r round(data_rando_vars$sum_total_event_count_species / (data_rando_vars$sum_total_event_count_species + data_rando_vars$sum_total_event_count_help) * 100)`%) compared to `r data_rando_vars$sum_total_event_count_help` (`r round(data_rando_vars$sum_total_event_count_help / (data_rando_vars$sum_total_event_count_species + data_rando_vars$sum_total_event_count_help) * 100)`%) events on the 151 (per electoral district) How to Help pages.
+
+## Events and links for educational pages
+
+The Species pages included more educational information for users to explore. The median number of events across each of the 361 Species pages was `r data_nonspatial$species_title_clean |> group_by(vernacular_name) |> summarise(n = sum(event_count)) |> ungroup() |> summarise(n = median(n))`. Users explored links external to TA such as Atlas of Living Australia (`r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "^bie.ala.org.au$|^ala.org.au$")) |> summarise(sum = sum(event_count))` link clicks). The most clicked domain link was to the individual animal and plant species profiles from the EPBC SPRAT database (cumulative `r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "^environment.gov.au$")) |> summarise(sum = sum(event_count))` link clicks), The second most clicked domain link explained why plants are just as important as animals using the 2019 State of the Environment Report (`r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "^soe.environment.gov.au$")) |> summarise(sum = sum(event_count))` link clicks).
+
+Quantification of the extent of the problem could be found on the How to Help page under 'Share the issue'. Here, data from the Threatened Species Index (TSX) showed the relative change in threatened species population in the state of the electoral division.
+
+```{r}
+data_nonspatial$links_domain_clean <- data_nonspatial$links_domain_clean |>
+  arrange(desc(event_count))
+
+knitr::kable(head(data_nonspatial$links_domain_clean, 10))
+```
+
+## Link clicks for How to Help or action pages
+
+### Email your MP link clicks (analytics)
 
 ```{r}
 data_nonspatial$links_email_clean <- data_nonspatial$links_email_clean |>
@@ -48,19 +100,184 @@ data_nonspatial$links_email_clean <- data_nonspatial$links_email_clean |>
 knitr::kable(head(data_nonspatial$links_email_clean, 10))
 ```
 
-```{r}
-data_nonspatial$acquis_time_sum <- make_acquis_time_sum(data_nonspatial$acquis_time_clean)
-```
-
 The total number of email MP link clicks was `r data_nonspatial$links_email_clean %>% summarise(sum = sum(event_count))`. If we assume that users only clicked the email MP link once, then the conversion rate of users to email MP link clicks was `r data_nonspatial$links_email_clean %>% summarise(sum = sum(event_count))` / `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))`. The median number of email MP link clicks per electoral district was `r data_nonspatial$links_email_clean %>% summarise(median = median(event_count))`. The top four electoral districts which received the most "Email your MP" link clicks were Berowra (NSW), Ryan (QLD), Grayndler (NSW), and Eden-Monaro (NSW).
 
-### Learning about current rep voting record (analytics)
+### Connect with organisations link clicks (analytics)
 
-Communicating with an elected representative requires having an understanding of how they represent their constituents. The web app displayed They Vote For You's conclusion on how that representative had "voted on federal government action on animal & plant extinctions". We found there were `r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "theyvoteforyou")) |> select(event_count)` clicks on links to They Vote For You that allowed the user to explore more about representative voting behaviour.
+The app provided links to organisations (Australian Conservation Foundation, BirdLife Australia, and the Places You Love Alliance) that are dedicated to the cause for users to connect with. The cumulative total of clicks on these links was `r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "birdlife|acf|placesyoulove")) |> summarise(sum = sum(event_count))`.
 
-## Survey responses (survey)
+### They Vote For You link clicks (analytics)
+
+The app displayed They Vote For You's conclusion on how that representative had "voted on federal government action on animal & plant extinctions". Engagement with this information did not require the user to click on a link unless they wanted to explore more about representative voting behaviour. We found there were `r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "theyvoteforyou")) |> select(event_count)` clicks on links to They Vote For You.
+
+### Shared the issue (analytics)
+
+The app encouraged people the share the issue and displayed a reconstructed visualisation of the TSX alongside explanatory text and links to share information on leading social media platforms (Facebook, Twitter, and LinkedIn). The cumulative total of 'Share this page on' a platform link clicks was `r data_nonspatial$links_domain_clean |> filter(str_detect(link_domain, "facebook|twitter|linkedin")) |> summarise(sum = sum(event_count))`.
+
+# User geography
+
+## Geography/electoral district events (analytics)
 
 ```{r}
+data_nonspatial$species_help_title_clean %>%
+  group_by(demographic_class) %>%
+  summarise(
+    class_n = n(),
+    class_n_percent = n()/data_rando_vars$sum_total_class_event_species_help * 100,
+    total_event_count = sum(event_count),
+    total_event_count_percent = total_event_count/data_rando_vars$sum_total_event_species_help * 100
+  ) %>%
+  ungroup() |>
+  arrange(desc(total_event_count)) |>
+  knitr::kable()
+```
+
+The combined Species and How to Help pages with the most events aggregated by electoral district was `r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`, n = `r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)`), followed by `r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(2)` (`r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(2)`, n = `r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(2)`), and `r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(3)` (`r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(3)`, n = `r data_nonspatial$species_help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(3)`).
+
+In comparison, the least number of combined Species and How to Help pages events was from the district of `r data_nonspatial$species_help_title_clean %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_help_title_clean %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`, n = `r data_nonspatial$species_help_title_clean %>% arrange(event_count) %>% select(event_count) %>% slice(1)`) (Figure X).
+
+
+```{r}
+mk_species_help_title_spatial <- function(data, data_join) {
+  species_help_title_spatial <- data %>%
+    full_join(., data_join) |>
+    mutate(
+      electorate_abbrev = abbreviate(
+          electorate,
+          minlength = 2L
+      )
+    ) |>
+    relocate(electorate_abbrev, .after = electorate)
+
+  return(species_help_title_spatial)
+}
+
+data_spatial$species_help_title_spatial <- mk_species_help_title_spatial(data_spatial$elect_clean, data_nonspatial$species_help_title_clean)
+```
+
+```{r}
+figures <- list()
+
+figures$ced_events_col <- data_nonspatial$species_help_title_clean |>
+  ggplot(aes(x = reorder(electorate, event_count), y = event_count, fill = demographic_class)) +
+  geom_col(color = "black", linewidth = 0.2) +
+  scale_fill_viridis(discrete = TRUE, option = "plasma", direction = -1) +
+  # theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.line.x = element_blank(),
+    # panel.background = element_rect(fill = "white")
+  ) +
+  labs(
+    x = "Electoral divisions",
+    y = "Number of events",
+    fill = "Demographic class"
+  )
+
+ggsave(here("output/figures/ced_events_col.png"), figures$ced_events_col, height = 15, width = 15, units = "cm")
+
+```
+
+
+```{r}
+# print(object.size(data_spatial$species_help_title_spatial), units = "Kb")
+
+# elect <- ms_simplify(
+#   elect,
+#   keep = 0.1,
+#   keep_shape = TRUE
+# ) %>%
+#   st_make_valid()
+
+
+data_spatial$species_help_title_spatial_dorl_weight <- data_spatial$species_help_title_spatial %>%
+  st_transform(
+    3112
+  ) %>%
+  cartogram_dorling(
+    weight = "event_count",
+    k = 0.18
+    # m_weight = 1
+  )
+
+#### tmap ####
+
+
+figures$species_help_title_spatial_dorl <-
+tm_shape(
+  data_spatial$elect_clean,
+  bbox = st_bbox(c(
+    xmin = 112.929704,
+    ymin = -43.627943,
+    xmax = 155.629864,
+    ymax = -9.115517
+    )
+  )
+  ) +
+  tm_borders(
+    "white",
+    lwd = 1
+  ) +
+  tm_fill(
+    "#d8d8d8"
+  ) +
+  tm_shape(
+    data_spatial$species_help_title_spatial_dorl_weight,
+    bbox = st_bbox(c(
+      xmin = 112.929704,
+      ymin = -43.627943,
+      xmax = 155.629864,
+      ymax = -9.115517
+    )
+  )
+  ) +
+  tm_fill(
+    "event_count",
+    style = "jenks",
+    # style = "cont",
+    title = "Event count",
+    palette = "-inferno"
+  ) +
+  tm_text(
+    "electorate_abbrev",
+    size = 0.45
+  ) +
+  tm_borders(
+    alpha = 0.6
+  ) +
+  # tm_legend(
+    # legend.position = c("left", "top")
+    # title.position = c("left", "bottom")
+  # ) +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar(
+    position = c("left", "bottom"),
+    width = 0.2
+  ) +
+  tm_layout(
+    frame = FALSE,
+    # legend.width = 1,
+    # legend.height = 0.8,
+    # legend.title.size = 1.5
+    # legend.outside = TRUE
+  )
+
+figures$species_help_title_spatial_dorl
+
+tmap_save(figures$species_help_title_spatial_dorl,
+  file = here("output/figures/ced_events_dorl.png"),
+  height = 15, width = 15, units = "cm"
+)
+```
+
+# Survey responses
+
+## Survey numbers (survey)
+
+```{r}
+data_nonspatial$acquis_time_source <- make_acquis_time_source(data_nonspatial$acquis_time_clean)
+
 data_nonspatial$feedback_clean <- transform_feedback(data_nonspatial$feedback_clean)
 
 data_nonspatial$feedback_actions_result <- make_feedback_actions_result(data_nonspatial$feedback_clean['actions_result'])
@@ -107,50 +324,7 @@ When users were asked if they have any suggestions for ways that we might improv
 * "Brilliant electorate based platform to connect people to biodiversity in their area, and more activate them into electorate level mobilisations"
 * "Keeping an eye out for the species, and possibly contacting my MP" and "Inform our community group, write to the federal, state and local members"
 
-# User activity
-
-## General user activity and sources (analytics)
-
-* What is the total number of users the app received?
-
-```{r}
-data_nonspatial$acquis_time_source <- make_acquis_time_source(data_nonspatial$acquis_time_clean)
-
-data_nonspatial$acquis_time_source |>
-  summarise(sum = sum(total))
-```
-
-The TA web application was launched on the May 3, 2022 ahead of the Australian federal election held on the May 21, 2022. Prior to election day, `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))` (`r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise((sum = sum(sum))/(data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum)))*100) %>% round()`%) users visited the web app (Figure X). During the six week period from May 3, 2022 to June 14, 2022, the TA web app received a total of `r data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum))` users. The largest acquisition source of users were from `r data_nonspatial$acquis_time_source %>% select(source) %>% slice(1)` input of the TA URL into a web browser application (`r data_nonspatial$acquis_time_source %>% select(total) %>% slice(1)`, `r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(1)`%). The Australian Broadcasting Corporation accounted for `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(2)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(2)`%) users, followed by The Conversation with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(3)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(3)`%), Google with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(4)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(4)`%), and Facebook `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(5)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(5)`%).
-
-```{r}
-#| label: fig-engag-usage-time
-#| fig-cap: Time series of Threatened Australians web app usage including key events. Acquisition of users from the corresponding websites (colour) and proportion in relation to total number of users (shaded area).
-
-# TODO: add in key media events, maybe by joining the two datasets, or manual add-in as per Chang 2018
-
-plot_engage_usage_time(data_nonspatial$acquis_time_clean)
-```
-
-
-# Content engagement
-
-## Most-clicked links (analytics)
-
-* What were the most clicked links?
-
-```{r}
-data_nonspatial$links_domain_clean <- data_nonspatial$links_domain_clean |>
-  arrange(desc(event_count))
-
-knitr::kable(head(data_nonspatial$links_domain_clean, 10))
-```
-
-The most clicked domain link was to "environment.gov.au". The web app linked to this domain across multiple pages such as under the About me section and the scientific names of each plant species on the electoral district page. The second most clicked link was a hyperlink primarily found as a hyperlink in the Plants section of the Electoral district page under the text "Berowra has or used to have 40 threatened plants found within its boundaries. Some of these might not be as photogenic as the Large-eared Pied Bat but they're just as important.". The link provided more information on why plants are important through Australia's SoE report.
-
-## Species engagement (analytics)
-
-
-* Which species received the most engagement/events?
+# Species engagement (analytics)
 
 There were 361 threatened animals and 1356 threatened plants across 151 electoral divisions.
 
@@ -237,178 +411,12 @@ data_nonspatial$species_title_av_time_clean |>
   knitr::kable()
 ```
 
+# User acquisition sources (analytics)
 
-## User interaction with pages (analytics)
-
-* How many events occurred across all pages?
-* How many events occurred on the How-to-help page?
-* How many events occurred on the district page?
-* Which districts experienced the highest number of events?
-
-```{r include=FALSE}
-data_spatial[['species_title_spatial']] <- mk_species_title_spatial(data_spatial$elect_clean, data_nonspatial$species_title_clean)
-
-data_nonspatial[['species_title']] <- data_spatial$species_title_spatial %>%
-  st_set_geometry(NULL)
-```
+The TA web application was launched on the May 3, 2022 ahead of the Australian federal election held on the May 21, 2022. Prior to election day, `r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise(sum = sum(sum))` (`r data_nonspatial$acquis_time_sum %>% filter(between(date, as.Date("2022-05-02"), as.Date("2022-05-21"))) %>% summarise((sum = sum(sum))/(data_nonspatial$acquis_time_sum %>% summarise(sum = sum(sum)))*100) %>% round()`%) users visited the web app (Figure X). The largest acquisition source of users were from `r data_nonspatial$acquis_time_source %>% select(source) %>% slice(1)` input of the TA URL into a web browser application (`r data_nonspatial$acquis_time_source %>% select(total) %>% slice(1)`, `r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(1)`%). The Australian Broadcasting Corporation accounted for `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(2)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(2)`%) users, followed by The Conversation with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(3)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(3)`%), Google with `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(4)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(4)`%), and Facebook `r data_nonspatial$acquis_time_source %>% select(total) %>% slice(5)` (`r data_nonspatial$acquis_time_source %>% select(total_percent) %>% slice(5)`%).
 
 ```{r}
-data_rando_vars <- list()
+#| label: fig-engag-usage-time
 
-data_rando_vars$sum_total_class_species <- data_nonspatial$species_title |> count(demographic_class) |> summarise(sum = sum(n))
-data_rando_vars$sum_total_event_count_species <- sum(data_nonspatial$species_title$event_count)
-data_rando_vars$sum_total_class_help <- data_nonspatial$help_title_clean |> count(demographic_class) |> summarise(sum = sum(n))
-data_rando_vars$sum_total_event_count_help <- sum(data_nonspatial$help_title_clean$event_count)
-
-data_nonspatial$species_title %>%
-  group_by(state_territory_abbrev, demographic_class) %>%
-  summarise(
-    class_n = n(),
-    class_n_percent = n()/data_rando_vars$sum_total_class_species * 100,
-    total_event_count = sum(event_count),
-    total_event_count_percent = total_event_count/data_rando_vars$sum_total_event_count_species * 100
-  ) %>%
-  arrange(desc(total_event_count)) |>
-  knitr::kable()
-```
-
-An event is defined as a distinct user interaction with the TA web app such as viewing a page, scrolling, and clicking. The majority of events occurred across all the Species pages `r data_rando_vars$sum_total_event_count_species` (`r round(data_rando_vars$sum_total_event_count_species / (data_rando_vars$sum_total_event_count_species + data_rando_vars$sum_total_event_count_help) * 100)`%) compared to `r data_rando_vars$sum_total_event_count_help` (`r round(data_rando_vars$sum_total_event_count_help / (data_rando_vars$sum_total_event_count_help + data_rando_vars$sum_total_event_count_help) * 100)`) events on the How to Help pages.
-
-The Species pages with the most events aggregated by electoral district was `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`, n = `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)`), followed by `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(2)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(2)`, n = `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(2)`), and `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(3)` (`r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(3)`, n = `r data_nonspatial$species_title %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(3)`).
-
-In comparison, the least number of Species events was from the district of `r data_nonspatial$species_title %>% arrange(event_count) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$species_title %>% arrange(event_count) %>% select(state_territory_abbrev) %>% slice(1)`) with `r data_nonspatial$species_title %>% arrange(event_count) %>% select(event_count) %>% slice(1)` (Figure X).
-
-
-```{r}
-data_nonspatial$help_title_clean %>%
-  group_by(state_territory_abbrev, demographic_class) %>%
-  summarise(
-    class_n = n(),
-    class_n_percent = n()/data_rando_vars$sum_total_class_help * 100,
-    total_event_count = sum(event_count),
-    total_event_count_percent = total_event_count/data_rando_vars$sum_total_event_count_help * 100
-  ) %>%
-  arrange(desc(total_event_count)) |>
-  knitr::kable()
-```
-
-The How to Help page with the most events was from the electoral district of `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(1)` (`r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(1)`, n = `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(1)`), followed by `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(2)` (`r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(2)`, n = `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(2)`), and `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(electorate) %>% slice(3)` (`r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(state_territory_abbrev) %>% slice(3)`, n = `r data_nonspatial$help_title_clean %>% arrange(desc(event_count)) %>% select(event_count) %>% slice(3)`).
-
-```{r}
-data_nonspatial$species_help_title_clean <- data_nonspatial$help_title_clean |>
-  select(electorate, state_territory, state_territory_abbrev, demographic_class, event_count) |>
-  # now join this data with the other while merging into one the rows that match in electorate, state_territoyr, state_territory_abbrev, demographic_class while summing the event_count column
-  left_join(data_nonspatial$species_title, by = c("electorate", "state_territory", "state_territory_abbrev", "demographic_class")) |>
-  select(-c(active_users, engaged_sessions)) |>
-  # mutate a new column which is the addition of event_count.x, event_count.y
-  mutate(event_count = event_count.x + event_count.y) |>
-  select(-c(event_count.x, event_count.y))
-```
-
-```{r}
-mk_species_help_title_spatial <- function(data, data_join) {
-  species_help_title_spatial <- data %>%
-    full_join(., data_join) |>
-    mutate(
-      electorate_abbrev = abbreviate(
-          electorate,
-          minlength = 2L
-      )
-    ) |>
-    relocate(electorate_abbrev, .after = electorate)
-
-  return(species_help_title_spatial)
-}
-
-data_spatial$species_help_title_spatial <- mk_species_help_title_spatial(data_spatial$elect_clean, data_nonspatial$species_help_title_clean)
-
-# print(object.size(data_spatial$species_help_title_spatial), units = "Kb")
-
-# elect <- ms_simplify(
-#   elect,
-#   keep = 0.1,
-#   keep_shape = TRUE
-# ) %>%
-#   st_make_valid()
-
-
-data_spatial$species_help_title_spatial_dorl_weight <- data_spatial$species_help_title_spatial %>%
-  st_transform(
-    3112
-  ) %>%
-  cartogram_dorling(
-    weight = "event_count",
-    k = 0.18
-    # m_weight = 1
-  )
-
-#### tmap ####
-
-figures <- list()
-
-figures$species_help_title_spatial_dorl <-
-tm_shape(
-  data_spatial$elect_clean,
-  bbox = st_bbox(c(
-    xmin = 112.929704,
-    ymin = -43.627943,
-    xmax = 155.629864,
-    ymax = -9.115517
-    )
-  )
-  ) +
-  tm_borders(
-    "white",
-    lwd = 1
-  ) +
-  tm_fill(
-    "#d8d8d8"
-  ) +
-  tm_shape(
-    data_spatial$species_help_title_spatial_dorl_weight,
-    bbox = st_bbox(c(
-      xmin = 112.929704,
-      ymin = -43.627943,
-      xmax = 155.629864,
-      ymax = -9.115517
-    )
-  )
-  ) +
-  tm_fill(
-    "event_count",
-    style = "jenks",
-    # style = "cont",
-    title = "Event count",
-    palette = "-inferno"
-  ) +
-  tm_text(
-    "electorate_abbrev",
-    size = 0.45
-  ) +
-  tm_borders(
-    alpha = 0.6
-  ) +
-  # tm_legend(
-    # legend.position = c("left", "top")
-    # title.position = c("left", "bottom")
-  # ) +
-  tm_compass(position = c("left", "bottom")) +
-  tm_scale_bar(
-    position = c("left", "bottom"),
-    width = 0.2
-  ) +
-  tm_layout(
-    frame = FALSE,
-    # legend.width = 1,
-    # legend.height = 0.8,
-    # legend.title.size = 1.5
-    # legend.outside = TRUE
-  )
-
-figures$species_help_title_spatial_dorl
-
-tmap_save(figures$species_help_title_spatial_dorl,
-  file = here("output/figures/ced_events_dorl.png"),
-  height = 15, width = 15, units = "cm"
-)
+plot_engage_usage_time(data_nonspatial$acquis_time_clean)
 ```
